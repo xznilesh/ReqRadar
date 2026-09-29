@@ -19,6 +19,15 @@ jobs:
           node-version: 22
       - run: npm install --no-audit --no-fund
       - run: npm run test:step9
+      - run: npm run test:agency
+      - name: Enforce existing live release gate
+        run: npm run test:step9:release
+        env:
+          XZRECRUITER_DATABASE_URL: ${{ secrets.XZRECRUITER_DATABASE_URL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          XZRECRUITER_BACKUP_RESTORE_EVIDENCE: ${{ vars.XZRECRUITER_BACKUP_RESTORE_EVIDENCE }}
+          XZRECRUITER_BROWSER_E2E_EVIDENCE: ${{ vars.XZRECRUITER_BROWSER_E2E_EVIDENCE }}
+          XZRECRUITER_PILOT_EVIDENCE: ${{ vars.XZRECRUITER_PILOT_EVIDENCE }}
       - run: npm run build
         env:
           DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/postgres

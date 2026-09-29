@@ -1,0 +1,113 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { PGlite } from '@electric-sql/pglite';
+import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
+
+// Real isolated PostgreSQL execution with synthetic identities, not a live-data test.
+const db=new PGlite({extensions:{pgcrypto}});
+const id=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0');
+const A=id(1),B=id(2),OWNER=id(11),RECRUITER=id(12),OTHER=id(13),CLIENT=id(21),ACCOUNT=id(22),FOREIGN=id(23),JOB=id(31),CANDIDATE=id(41),APP=id(51),RELEASE=id(61),INTERNAL=id(62);
+await db.exec(`create schema private;create schema extensions;create extension pgcrypto with schema extensions;create role anon;create role authenticated;`);
+await db.exec(fs.readFileSync('tests/fixtures/agency-structure.sql','utf8'));
+await db.exec(`
+create table public.application_screening_sessions(id uuid default gen_random_uuid(),agency_id uuid,application_id uuid,completed_at timestamptz);
+create table public.offers(id uuid primary key,agency_id uuid,application_id uuid,status text,accepted_at timestamptz,created_at timestamptz);
+create function private.xzrecruiter_log_activity(a uuid,u uuid,t text,e uuid,x text,s text,m jsonb) returns void language plpgsql as $$begin insert into test_events values(a,u,t,e,x,s,m);end;$$;
+create table test_sessions(token text,agency_id uuid,user_id uuid,role text);
+create table test_events(agency_id uuid,actor uuid,entity_type text,entity_id uuid,action text,summary text,metadata jsonb);
+create function private.xzrecruiter_session_context(p_token text) returns table(agency_id uuid,user_id uuid,role text) language sql as $$select agency_id,user_id,role from test_sessions where token=p_token$$;
+create function private.xzrecruiter_business_role(a uuid,u uuid,r text) returns text language sql as $$select r$$;
+create function private.xzrecruiter_has_permission(r text,p text) returns boolean language sql as $$select r in ('OWNER','ADMIN') or r='ACCOUNT_MANAGER' and p in ('commercial:view','commercial:edit')$$;
+create function private.xzrecruiter_recruiter_job_access(a uuid,u uuid,r text,j uuid) returns boolean language sql as $$select r in ('OWNER','ADMIN','ACCOUNT_MANAGER','RECRUITER','RECRUITMENT_MANAGER') and exists(select 1 from recruitment_jobs where id=j and agency_id=a)$$;
+create function private.xzrecruiter_log_recruitment_event(a uuid,u uuid,t text,e uuid,x text,s text,m jsonb) returns void language sql as $$insert into test_events values(a,u,t,e,x,s,m)$$;
+create function private.xzrecruiter_normalize_candidate_skill(v text) returns text language sql as $$select lower(v)$$;
+insert into test_sessions values('owner','${A}','${OWNER}','OWNER'),('recruiter','${A}','${RECRUITER}','RECRUITER'),('foreign','${B}','${OTHER}','OWNER');
+insert into users(id,display_name) values('${OWNER}','Owner'),('${RECRUITER}','Recruiter'),('${OTHER}','Other tenant');
+insert into agency_memberships(agency_id,user_id,role) values('${A}','${OWNER}','OWNER'),('${A}','${RECRUITER}','RECRUITER'),('${B}','${OTHER}','OWNER');
+insert into recruitment_clients(id,agency_id,name,updated_at) values('${CLIENT}','${A}','Client',now()),('${ACCOUNT}','${A}','Account',now()),('${FOREIGN}','${B}','Foreign',now());
+`);
+const file=fs.readdirSync('supabase/migrations').find(f=>f.endsWith('_agency_os_gap_fill.sql'));
+await db.exec(fs.readFileSync('supabase/migrations/'+file,'utf8'));
+async function rpc(name,args){const ps=args.map((_,i)=>'$'+(i+1)).join(',');return (await db.query(`select public.${name}(${ps}) as data`,args)).rows[0].data}
+async function rejected(sql,pattern){await assert.rejects(db.exec(sql),pattern)}
+await db.exec(`insert into recruitment_jobs(id,agency_id,client_id,title,status,requirement_state,created_at,updated_at,owner_user_id) values('${JOB}','${A}','${ACCOUNT}','Engineer','OPEN','OPEN',now()-interval '4 days',now(),'${OWNER}');insert into candidates(id,agency_id,full_name,owner_user_id,updated_at) values('${CANDIDATE}','${A}','Synthetic candidate','${RECRUITER}',now());insert into applications(id,agency_id,candidate_id,job_id,client_id,owner_user_id) values('${APP}','${A}','${CANDIDATE}','${JOB}','${ACCOUNT}','${RECRUITER}');`);
+await rejected(`insert into recruitment_jobs(agency_id,title) values('${A}','Orphan')`,/client_required/);
+await rejected(`update recruitment_jobs set client_id='${FOREIGN}' where id='${JOB}'`,/invalid_client/);
+await rejected(`update recruitment_jobs set client_id='${CLIENT}' where id='${JOB}'`,/locked_by_applications/);
+const stamp=(await db.query('select updated_at from recruitment_clients where id=$1',[ACCOUNT])).rows[0].updated_at;
+assert.equal((await rpc('xzrecruiter_set_account_parent',['recruiter',ACCOUNT,CLIENT,stamp])).error,'forbidden');
+assert.equal((await rpc('xzrecruiter_set_account_parent',['owner',ACCOUNT,CLIENT,stamp])).ok,true);
+await rejected(`update recruitment_clients set parent_client_id='${ACCOUNT}' where id='${CLIENT}'`,/invalid_parent_client/);
+await rejected(`update recruitment_clients set parent_client_id='${FOREIGN}' where id='${ACCOUNT}'`,/invalid_parent_client/);
+assert.equal((await rpc('xzrecruiter_transfer_candidate_owner',['foreign',CANDIDATE,OTHER,RECRUITER,'Transfer test'])).error,'candidate_not_found');
+assert.equal((await rpc('xzrecruiter_transfer_candidate_owner',['recruiter',CANDIDATE,OWNER,RECRUITER,'Transfer test'])).error,'forbidden');
+assert.equal((await rpc('xzrecruiter_transfer_candidate_owner',['owner',CANDIDATE,OWNER,OTHER,'Transfer test'])).error,'stale_owner');
+assert.equal((await rpc('xzrecruiter_transfer_candidate_owner',['owner',CANDIDATE,OTHER,RECRUITER,'Transfer test'])).error,'invalid_owner');
+assert.equal((await rpc('xzrecruiter_transfer_candidate_owner',['owner',CANDIDATE,OWNER,RECRUITER,'Manager handoff'])).ok,true);
+assert.equal((await rpc('xzrecruiter_transfer_candidate_owner',['owner',CANDIDATE,null,null,null])).members.length,2);
+assert.equal((await rpc('xzrecruiter_requirement_commercial',['recruiter',JOB,null])).error,'forbidden');
+await db.exec(`update recruitment_jobs set submission_config='{"requiredFields":["workAuthorization"],"requireCompliance":true}' where id='${JOB}'`);
+let commercial=await rpc('xzrecruiter_requirement_commercial',['owner',JOB,null]);
+assert.equal(commercial.ok,true);
+assert.equal((await rpc('xzrecruiter_requirement_commercial',['owner',JOB,{billRate:100,currency:'USD',period:'HOURLY',presentationFormat:'DETAILED',expectedUpdatedAt:commercial.updatedAt}])).ok,true);
+assert.equal((await db.query('select submission_config from recruitment_jobs where id=$1',[JOB])).rows[0].submission_config.requireCompliance,true);
+const entry={id:id(71),type:'EMAIL',body:'Discussed role and availability.'};
+assert.equal((await rpc('xzrecruiter_communication_timeline',['foreign',JOB,CANDIDATE,entry])).error,'forbidden');
+assert.equal((await rpc('xzrecruiter_communication_timeline',['recruiter',JOB,CANDIDATE,entry])).rows.length,1);
+assert.equal((await rpc('xzrecruiter_communication_timeline',['recruiter',JOB,CANDIDATE,entry])).rows.length,1);
+assert.equal((await rpc('xzrecruiter_communication_timeline',['recruiter',JOB,CANDIDATE,{...entry,body:'Changed retry'}])).error,'communication_conflict');
+await db.exec(`insert into candidate_submissions(id,agency_id,application_id,candidate_id,job_id,client_id,workflow_status,am_review_status,status,client_submitted_at,client_submission_snapshot) values
+('${RELEASE}','${A}','${APP}','${CANDIDATE}','${JOB}','${ACCOUNT}','CLIENT_SUBMITTED','APPROVED','SUBMITTED',now(),' {"pack":{"candidateSummary":{"narrative":"Approved summary"}}}'),
+('${INTERNAL}','${A}','${APP}','${CANDIDATE}','${JOB}','${ACCOUNT}','AM_APPROVED','APPROVED','READY',null,null);
+insert into client_portal_sessions(agency_id,client_id,token_hash,expires_at) values('${A}','${ACCOUNT}',encode(extensions.digest('portal-test-token','sha256'),'hex'),now()+interval '1 day');`);
+const snapshot=await rpc('xzrecruiter_client_portal_snapshot',['portal-test-token']);
+assert.equal(snapshot.ok,true);assert.equal(snapshot.submissions.length,1);assert.equal(snapshot.submissions[0].summary,'Approved summary');
+assert.equal(snapshot.submissions[0].salary_expectation,null);
+for(const decision of ['COMMENT','ADVANCE','REQUEST_INTERVIEW','HOLD','REJECT'])assert.equal((await rpc('xzrecruiter_client_portal_feedback',['portal-test-token',RELEASE,decision,'Feedback'])).ok,true);
+assert.equal((await rpc('xzrecruiter_client_portal_feedback',['portal-test-token',INTERNAL,'ADVANCE','Leak test'])).error,'submission_not_found');
+assert.equal((await rpc('xzrecruiter_client_portal_feedback',['expired',RELEASE,'ADVANCE','Expired'])).error,'invalid_or_expired');
+await rejected(`update candidate_submissions set workflow_status='CLIENT_SUBMITTED' where id='${INTERNAL}'`,/duplicate key/);
+await db.exec(`insert into placements(agency_id,application_id,candidate_id,job_id,client_id,recruiter_user_id,status,placement_fee,fee_currency,start_date,created_at) values
+('${A}','${APP}','${CANDIDATE}','${JOB}','${ACCOUNT}','${RECRUITER}','STARTED',1000,'USD',current_date,now()),
+('${A}','${APP}','${CANDIDATE}','${JOB}','${ACCOUNT}','${RECRUITER}','PLANNED',2000,'INR',current_date,now()),
+('${A}','${APP}','${CANDIDATE}','${JOB}','${ACCOUNT}','${RECRUITER}','CANCELLED',99999,'USD',current_date,now());`);
+assert.equal((await rpc('xzrecruiter_staffing_analytics',['recruiter',null,null,null,null,null])).error,'forbidden');
+const report=await rpc('xzrecruiter_staffing_analytics',['owner',null,null,null,null,null]);
+assert.equal(report.revenue.length,2);assert.equal(Number(report.revenue.find(r=>r.currency==='USD').achieved_revenue),1000);assert.equal(Number(report.revenue.find(r=>r.currency==='INR').expected_revenue),2000);
+assert.equal((await rpc('xzrecruiter_staffing_analytics',['foreign',null,null,null,null,null])).revenue.length,0);
+const planned=(await db.query("select id from placements where status='PLANNED' limit 1")).rows[0].id;
+assert.equal((await rpc('xzrecruiter_placement_status',['recruiter',planned,'PLANNED','STARTED','Verified join'])).error,'joining_role_forbidden');
+assert.equal((await rpc('xzrecruiter_placement_status',['foreign',planned,'PLANNED','STARTED','Verified join'])).error,'placement_not_found');
+assert.equal((await rpc('xzrecruiter_placement_status',['owner',planned,'STARTED','COMPLETED','Verified join'])).error,'stale_placement');
+assert.equal((await rpc('xzrecruiter_placement_status',['owner',planned,'PLANNED','STARTED','Verified join'])).error,'accepted_offer_required');
+await db.exec(`insert into offers values('${id(91)}','${A}','${APP}','ACCEPTED',now(),now());update placements set offer_id='${id(91)}' where id='${planned}';`);
+assert.equal((await rpc('xzrecruiter_placement_status',['owner',planned,'PLANNED','STARTED','Client confirmed first day'])).ok,true);
+assert.equal((await rpc('xzrecruiter_placement_status',['owner',planned,'PLANNED','STARTED','Repeated request'])).error,'stale_placement');
+assert.equal((await rpc('xzrecruiter_placement_status',['owner',planned,'STARTED','COMPLETED','Engagement completed'])).ok,true);
+assert.equal((await rpc('xzrecruiter_placement_status',['owner',planned,'COMPLETED','PLANNED','Invalid rollback'])).error,'invalid_placement_transition');
+const app2=id(52),offer2=id(92);
+await db.exec(`insert into applications(id,agency_id,candidate_id,job_id,client_id,owner_user_id) values('${app2}','${A}','${CANDIDATE}','${JOB}','${ACCOUNT}','${RECRUITER}');insert into offers values('${offer2}','${A}','${app2}','ACCEPTED',now(),now());`);
+const created=await rpc('xzrecruiter_create_placement',['owner',{applicationId:app2,placementFee:500,feeCurrency:'USD',startDate:'2026-01-01'}]);
+assert.equal(created.ok,true);
+assert.equal((await db.query('select recruiter_user_id from placements where id=$1',[created.id])).rows[0].recruiter_user_id,RECRUITER);
+assert.equal((await rpc('xzrecruiter_create_placement',['owner',{applicationId:app2}])).error,'placement_exists');
+assert.equal((await rpc('xzrecruiter_placement_status',['owner',created.id,'PLANNED','STARTED','Verified first day'])).error,'am_quality_gate_required');
+const unsafe=(await db.query(`select proname from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.prosecdef and has_function_privilege('public',p.oid,'EXECUTE')`)).rows;
+assert.deepEqual(unsafe,[]);
+assert.equal(Number((await db.query("select count(*) from test_events where action='client.feedback_received'")).rows[0].count),5);
+const brief=id(81);
+await db.exec(`insert into requirement_hiring_briefs(id,agency_id,job_id) values('${brief}','${A}','${JOB}');insert into requirement_criteria(agency_id,brief_id,criterion_kind,field_key,value_text) values('${A}','${brief}','MUST_HAVE','skill','Node.js');update candidates set skills='["Node.js"]' where id='${CANDIDATE}';update recruitment_jobs set recruiter_ready=true,approved_hiring_brief_id='${brief}' where id='${JOB}';`);
+const auto=(await db.query('select rediscovery_result from recruitment_jobs where id=$1',[JOB])).rows[0].rediscovery_result;
+assert.equal(auto.automatic,true);assert.ok(auto.candidateIds.includes(CANDIDATE));
+assert.equal((await rpc('xzrecruiter_talent_match_search',['owner',JOB,'',30])).rows[0].matched_skill_count,1);
+assert.equal((await rpc('xzrecruiter_talent_match_search',['foreign',JOB,'',30])).error,'requirement_access_forbidden');
+assert.equal((await rpc('xzrecruiter_client_staffing_context',['owner',ACCOUNT])).submissions.length,2);
+assert.equal((await rpc('xzrecruiter_client_staffing_context',['foreign',ACCOUNT])).error,'client_not_found');
+assert.equal((await rpc('xzrecruiter_staffing_stage_facts',['owner',[APP]])).rows.length,1);
+assert.equal((await rpc('xzrecruiter_staffing_stage_facts',['foreign',[APP]])).rows.length,0);
+assert.equal((await db.query("select private.xzrecruiter_phone_identity('+91 999-000')=private.xzrecruiter_phone_identity('0091999000') as equal")).rows[0].equal,true);
+assert.equal((await db.query("select private.xzrecruiter_profile_identity('https://in.linkedin.com/in/test/?trk=abc')=private.xzrecruiter_profile_identity('linkedin.com/in/test') as equal")).rows[0].equal,true);
+await db.exec(`update recruitment_clients set archived_at=now() where id='${ACCOUNT}'`);
+assert.equal((await rpc('xzrecruiter_client_portal_snapshot',['portal-test-token'])).error,'invalid_or_expired');
+await db.close();
+console.log('AGENCY_DATABASE_PASS isolated_postgres=true tenant_rbac=true am_portal_gate=true duplicate_release_index=true ownership_concurrency=true communication_idempotency=true revenue_currency=true audit=true');

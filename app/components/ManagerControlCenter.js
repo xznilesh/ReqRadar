@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect,useMemo,useState } from 'react';
+import { staffingConversionRatios } from '@/lib/manager-control.mjs';
+import StaffingRevenuePanel from '@/app/components/StaffingRevenuePanel';
 import Link from 'next/link';
 
 const list=(v)=>Array.isArray(v)?v:[];
@@ -84,6 +86,7 @@ export default function ManagerControlCenter({initialHome,initialNotifications,i
   const options=home.filterOptions||{};
   const reqs=list(home.requirements),recruiters=list(home.recruiters),exceptions=list(home.exceptions);
   const funnel=analytics.funnel||{};
+  const ratios=staffingConversionRatios(funnel);
   const maxFunnel=Math.max(1,...['sourced','screened','qualified','internallySubmitted','amApproved','clientSubmitted','interviewed','offered','joined'].map(k=>n(funnel[k])));
   const activeNotifications=list(notifications.notifications);
   const majorRisks=exceptions.filter(x=>x.severity==='URGENT').length;
@@ -141,7 +144,7 @@ export default function ManagerControlCenter({initialHome,initialNotifications,i
       <section className="mc-card">
         <div className="mc-section-title"><div><span className="page-kicker">Bottleneck</span><h2>{pretty(analytics.bottleneck||'NO_DOMINANT_BOTTLENECK')}</h2></div></div>
         <p className="mc-muted">Cohort: {analytics.cohortDefinition||'APPLICATION_CREATED_IN_WINDOW'} · {analytics.from?new Date(analytics.from).toLocaleDateString():'—'} → {analytics.to?new Date(analytics.to).toLocaleDateString():'now'}</p>
-        <div className="mc-funnel-mini">{Object.entries({
+        <div className="drawer-grid">{[['Qualified → submission',ratios.submissionToQualified],['Submission → interview',ratios.interviewToSubmission],['Interview → offer',ratios.offerToInterview],['Offer → join',ratios.joinToOffer]].map(([label,value])=><div key={label}><span>{label}</span><b>{value==null?'—':value+'%'}</b></div>)}</div><div className="mc-funnel-mini">{Object.entries({
           Sourced:funnel.sourced,Screened:funnel.screened,Qualified:funnel.qualified,'Internal submit':funnel.internallySubmitted,'AM approved':funnel.amApproved,'Client submit':funnel.clientSubmitted,Interviewed:funnel.interviewed,Offered:funnel.offered,Joined:funnel.joined
         }).map(([label,value])=><div key={label}><span>{label}</span><i style={{width:`${Math.max(3,n(value)/maxFunnel*100)}%`}}/><b>{n(value)}</b></div>)}</div>
       </section>
@@ -187,5 +190,5 @@ export default function ManagerControlCenter({initialHome,initialNotifications,i
       <div className="mc-owner-grid"><Metric label="Active requirements" value={n(t.activeRequirements)}/><Metric label="Target achievement" value={`${pct(n(t.validSubmissions),n(t.plannedSubmissions))}%`}/><Metric label="Interviews today" value={n(t.interviewsToday)}/><Metric label="Open urgent risks" value={majorRisks}/><Metric label="Offers needing action" value={n(t.offersRequiringAction)}/><Metric label="Joinings needing action" value={n(t.joiningsRequiringAction)}/></div>
     </section>
     <span className="sr-only">Open notifications: {activeNotifications.length}</span>
-  </div>;
+  <StaffingRevenuePanel filters={{from:filters.from,to:filters.to,clientId:filters.clientId,recruiterId:filters.recruiterId,accountManagerId:filters.accountManagerId}}/></div>;
 }
