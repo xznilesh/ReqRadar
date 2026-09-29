@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { declaredBodyWithin,mutationRequestIsTrusted,safeRequestId } from '@/lib/request-security';
-import { getAutomationNotifications,getManagerAnalytics,getManagerControlCenter,getManagerRequirement,managerControlAction } from '@/lib/manager-control-server';
+import { getStaffingAnalytics,getAutomationNotifications,getManagerAnalytics,getManagerControlCenter,getManagerRequirement,managerControlAction } from '@/lib/manager-control-server';
 import { serviceRpc } from '@/lib/server-rpc';
 
 export const runtime='nodejs';
@@ -29,6 +29,11 @@ export async function GET(req){
   const requestId=safeRequestId(req);
   const mode=req.nextUrl.searchParams.get('mode')||'home';
   try{
+    if(mode==='staffingAnalytics'){
+      const args=Object.fromEntries(['from','to','clientId','recruiterId','accountManagerId'].map(k=>[k,req.nextUrl.searchParams.get(k)||null]));
+      if(['clientId','recruiterId','accountManagerId'].some(k=>args[k]&&!uuid(args[k])))return fail('invalid_filter',400,requestId);
+      const data=await getStaffingAnalytics(args);return data?.ok?NextResponse.json(data):fail(data?.error||'staffing_unavailable',data?.error==='forbidden'?403:400,requestId);
+    }
     if(mode==='home'){
       const data=await getManagerControlCenter(50);return data?NextResponse.json({...data,requestId}):fail('forbidden_or_unavailable',403,requestId);
     }

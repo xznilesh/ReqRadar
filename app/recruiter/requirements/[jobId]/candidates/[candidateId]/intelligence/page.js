@@ -1,3 +1,4 @@
+import CommunicationTimeline from '@/app/components/CommunicationTimeline';
 import { notFound } from 'next/navigation';
 import AppShell from '@/app/components/AppShell';
 import CandidateIntelligenceWorkspace from '@/app/components/CandidateIntelligenceWorkspace';
@@ -20,5 +21,6 @@ export default async function CandidateIntelligencePage({params}){
       candidateId={candidateId}
       aiConfigured={candidateAiConfigured()}
     />
+    <CommunicationTimeline jobId={jobId} candidateId={candidateId}/>
   </AppShell>;
 }

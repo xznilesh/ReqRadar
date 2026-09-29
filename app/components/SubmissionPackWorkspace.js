@@ -1,5 +1,6 @@
 'use client';
 
+import ClientSubmissionPresentation from '@/app/components/ClientSubmissionPresentation';
 import { useMemo,useState } from 'react';
 
 const RETURN_REASONS=[
@@ -52,6 +53,7 @@ export default function SubmissionPackWorkspace({initialContext,applicationId,mo
       <article className="s6-card"><div className="s6-card-head"><h2>Version anchors</h2><span>immutable</span></div><Fact label="Requirement" fact={{value:`v${current.requirementVersion||ctx.requirement?.versionNumber||'?'}`,provenance:'CLIENT_CONFIRMED'}}/><Fact label="Resume" fact={{value:`v${current.resumeVersionNumber||ctx.resume?.versionNumber||'?'}`,provenance:'DOCUMENT_VERIFIED'}}/><Fact label="Screening" fact={{value:current.screeningVersion||ctx.screening?.version||'UNKNOWN',provenance:'RECRUITER_VERIFIED'}}/></article>
     </section>
 
+    <section className="s6-card"><h2>Previous submission history</h2>{list(ctx.previousSubmissions).length?<ul>{ctx.previousSubmissions.map(s=><li key={s.id}>{s.client_name||'Client'} · {s.job_title} · {pretty(s.workflow_status)} · {when(s.client_submitted_at)}</li>)}</ul>:<p>No other submissions visible for this candidate.</p>}</section>
     {canGenerate&&!isAm?<section className="s6-card"><div className="s6-card-head"><div><h2>Recruiter pre-submission review</h2><p>Correct source facts in their proper workflow, then regenerate. Do not rewrite generated facts here.</p></div></div><label className="s6-field"><span>Concise recruiter context (internal only)</span><textarea rows="3" value={recruiterContext} onChange={e=>setRecruiterContext(e.target.value)} maxLength={1200}/></label><button className="primary-action" disabled={busy||elig.eligible!==true} onClick={()=>act('generate',{recruiterContext})}>{busy==='generate'?'Generating…':version?'Regenerate from current facts':'Generate Submission Pack'}</button></section>:null}
 
     {current.id?<>
@@ -60,7 +62,7 @@ export default function SubmissionPackWorkspace({initialContext,applicationId,mo
       </section>
       <div className="s6-grid"><FindingList title="Why candidate fits" items={pack.whyCandidateFits}/><FindingList title="Known gaps" items={gaps}/><FindingList title="Open risks / uncertainties" items={unresolved}/></div>
       <section className="s6-card"><div className="s6-card-head"><h2>Must-have match</h2><span>{must.length}</span></div><div className="s6-must">{must.length?must.slice(0,12).map((x,i)=><article key={i}><b>{x.requirement||x.label||x.dimension||'Requirement'}</b><span>{pretty(x.status||'UNKNOWN')}</span><p>{x.rationale||x.reason||''}</p></article>):<p className="s6-muted">No structured must-have results.</p>}</div></section>
-      <section className="s6-card"><div className="s6-card-head"><h2>Client-facing preview</h2><span>sanitized</span></div><pre className="s6-preview">{JSON.stringify(clientPack,null,2)}</pre></section>
+      <section className="s6-card"><div className="s6-card-head"><h2>Client-facing preview</h2><span>sanitized</span></div><ClientSubmissionPresentation pack={clientPack} defaultFormat={ctx.configuration?.raw?.presentationFormat}/></section>
     </>:null}
 
     {!isAm&&current.id&&['DRAFT','RETURNED_TO_RECRUITER'].includes(workflow)?<section className="s6-card s6-action"><div><h2>Send internally to Account Manager</h2><p>Server revalidates qualification, screening, interest, hard rules, resume and source fingerprint before handoff.</p></div><button className="primary-action" disabled={busy||elig.eligible!==true} onClick={()=>act('sendToAm')}>{busy==='sendToAm'?'Sending…':'Send to AM Quality Gate →'}</button></section>:null}

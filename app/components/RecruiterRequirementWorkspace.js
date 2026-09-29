@@ -1,5 +1,6 @@
 'use client';
 
+import CommunicationTimeline from '@/app/components/CommunicationTimeline';
 import { useMemo,useRef,useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -29,7 +30,7 @@ export default function RecruiterRequirementWorkspace({initialContext,jobId}){
  const[intake,setIntake]=useState({candidateId:'',fullName:'',email:'',phone:'',currentTitle:'',currentCompany:'',sourceType:'',sourceReference:'',sourcingNotes:''});
  const[resume,setResume]=useState(null);
  const[search,setSearch]=useState('');const[searchRows,setSearchRows]=useState([]);const[searching,setSearching]=useState(false);
- const[talentQuery,setTalentQuery]=useState('');const[talentRows,setTalentRows]=useState([]);const[talentSearching,setTalentSearching]=useState(false);
+ const[talentQuery,setTalentQuery]=useState('');const[talentRows,setTalentRows]=useState(initialContext?.rediscovery?.rows||[]);const[talentSearching,setTalentSearching]=useState(false);
  const intakeKeyRef=useRef(uid());const taskKeyRef=useRef(uid());const assignmentKeyRef=useRef(uid());
  const[task,setTask]=useState({taskType:'FOLLOW_UP',title:'Follow up with candidate',dueLocal:'',priority:'NORMAL',candidateId:'',applicationId:'',description:''});
  const[assignment,setAssignment]=useState({recruiterUserId:'',dailyTarget:'1',totalTarget:'0',status:'ACTIVE',priority:'',priorityContext:'',managerInstructions:'',blockerType:'',blockerReason:'',blockerOwnerUserId:''});
@@ -199,9 +200,9 @@ export default function RecruiterRequirementWorkspace({initialContext,jobId}){
    </section>
 
    <section className="rx-section">
-     <div className="rx-section-head"><div><span className="page-kicker">Step 4 · Talent intelligence</span><h2>Find existing relevant candidates</h2><p>Tenant scope first → approved must-have skill coverage → lexical relevance. No cross-organization or unrestricted semantic search.</p></div></div>
+     <div className="rx-section-head"><div><span className="page-kicker">Step 4 · Talent intelligence</span><h2>Candidate rediscovery</h2><p>Tenant scope first → approved must-have skill coverage → lexical relevance. Suggestions load automatically for this approved requirement.</p></div></div>
      <div className="rx-internal-search"><input value={talentQuery} onChange={e=>setTalentQuery(e.target.value)} placeholder="Optional: title, skill, company or location"/><button onClick={searchTalent} disabled={talentSearching}>{talentSearching?'Ranking…':'Find matching talent'}</button></div>
-     <div className="rx-search-results">{talentRows.length?talentRows.map(row=><article key={row.id}><div><b>{row.full_name}</b><span>{[row.current_title,row.current_company,row.city,row.country_code].filter(Boolean).join(' · ')}</span><small>{row.required_skill_count?String(row.matched_skill_count)+'/'+String(row.required_skill_count)+' approved must-have skills evidenced':'No structured skill baseline'}{row.intelligence_available?' · normalized profile available':' · legacy profile evidence'}</small></div>{row.already_on_requirement?<a href={'/recruiter/requirements/'+jobId+'/candidates/'+row.id+'/intelligence'}>Open intelligence</a>:<button onClick={()=>addTalentCandidate(row)}>Add to requirement</button>}</article>):<div className="rx-empty compact">Run tenant-scoped talent matching to rank existing candidates.</div>}</div>
+     <div className="rx-search-results">{talentRows.length?talentRows.map(row=><article key={row.id}><div><b>{row.full_name}</b><span>{[row.current_title,row.current_company,row.city,row.country_code].filter(Boolean).join(' · ')}</span><small>{row.required_skill_count?String(row.matched_skill_count)+'/'+String(row.required_skill_count)+' approved must-have skills evidenced':'No structured skill baseline'}{row.intelligence_available?' · normalized profile available':' · legacy profile evidence'}</small>{row.previous_strong_match?<small>Previous strong match · {row.previous_strong_match.score}% · {row.previous_strong_match.requiresReassessment?'reassess for this requirement':'current requirement evidence'}</small>:null}</div>{row.already_on_requirement?<a href={'/recruiter/requirements/'+jobId+'/candidates/'+row.id+'/intelligence'}>Open intelligence</a>:<button onClick={()=>addTalentCandidate(row)}>Add to requirement</button>}</article>):<div className="rx-empty compact">No suggestions loaded. Use Find matching talent to retry or broaden the search.</div>}</div>
    </section>
 
    <div className="rx-two-col">
@@ -224,6 +225,7 @@ export default function RecruiterRequirementWorkspace({initialContext,jobId}){
      <div className="rx-assignment-list">{list(ctx.assignments).map(a=><div key={a.id}><b>{a.recruiter_name||a.recruiter_user_id}</b><span>{a.assignment_status} · daily {a.daily_target} · total {a.total_submission_target||a.total_target||0} · {a.priority||'requirement priority'}</span><small>{a.blocker_reason?'Blocked: '+a.blocker_reason:(a.manager_instructions||a.priority_context||'No manager instructions')}</small></div>)}</div>
    </section>:null}
 
+   <CommunicationTimeline jobId={jobId}/>
    {intakeOpen?<div className="modal-backdrop"><section className="ats-modal rx-intake-modal"><div className="drawer-head"><div><span className="page-kicker">Fast sourcing intake</span><h2>Add sourced candidate</h2><p>Search internal talent first, or create the minimum candidate record. Candidate intelligence is not run in Step 3.</p></div><button onClick={()=>setIntakeOpen(false)}>×</button></div>
      <div className="rx-internal-search"><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search existing candidate, email, title or company"/><button onClick={searchExisting} disabled={searching||search.trim().length<2}>{searching?'Searching…':'Search internal talent'}</button></div>
      {searchRows.length?<div className="rx-search-results">{searchRows.map(r=><article key={r.id}><div><b>{r.full_name}</b><span>{[r.current_title,r.current_company].filter(Boolean).join(' · ')}</span><small>{r.email||r.phone||'Contact hidden until authorized'}{r.already_on_requirement?' · already on this requirement':!r.reusable_without_manager?' · manager review required to reuse':''}</small></div>{r.reusable_without_manager?<button onClick={()=>chooseExisting(r)}>Reuse</button>:<span className="status neutral">Manager review</span>}</article>)}</div>:null}

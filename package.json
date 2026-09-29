@@ -97,18 +97,24 @@
     "test:step9:responsive": "node scripts/step9-layer-runner.mjs responsive",
     "test:step9": "npm run test:step9:audit && npm run test:step9:unit && npm run test:step9:integration && npm run test:step9:e2e && npm run test:step9:security && npm run test:step9:ai && npm run test:step9:performance && npm run test:step9:responsive",
     "test:step9:live-db": "node scripts/step9-live-db.mjs",
-    "test:step9:release": "node scripts/step9-release-gate.mjs"
+    "test:step9:release": "node scripts/step9-release-gate.mjs",
+    "test:agency:unit": "node --experimental-vm-modules scripts/agency-os-unit-tests.mjs",
+    "test:agency:database": "node scripts/agency-os-database-tests.mjs",
+    "test:agency": "npm run test:agency:unit && npm run test:agency:database"
   },
   "dependencies": {
+    "@radix-ui/react-scroll-area": "1.2.18",
+    "lucide-react": "1.48.0",
     "mammoth": "1.12.3",
     "next": "16.3.3",
     "pdf-parse": "1.1.1",
     "react": "19.2.0",
-    "react-dom": "19.2.0",
-    "@radix-ui/react-scroll-area": "1.2.18",
-    "lucide-react": "1.48.0"
+    "react-dom": "19.2.0"
   },
   "engines": {
     "node": ">=22 <25"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8"
   }
 }

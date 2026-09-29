@@ -58,6 +58,7 @@ jobs:
       - run: npm run test:step7
       - run: npm run test:step8
       - run: npm run test:step9
+      - run: npm run test:agency
       - run: npm run build
         env:
           DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/postgres
