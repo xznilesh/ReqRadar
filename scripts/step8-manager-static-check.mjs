@@ -31,4 +31,5 @@ assert.ok(core.includes('create extension if not exists pg_cron'));
 assert.ok(rpcs.includes('select cron.schedule('));
 assert.ok(!/\bdrop\s+table\b|\btruncate\b/i.test(core+rpcs),'Step-8 migration must not destructively drop/truncate business tables');
 
+assert.ok(core.includes("'submission.am_returned'"),'Step-6 AM return event must map into Step-8 outbox');
 console.log('STEP8_MANAGER_STATIC_PASS js_syntax=true sql_delimiters=true migration_non_destructive=true');
