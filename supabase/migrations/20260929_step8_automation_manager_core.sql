@@ -328,7 +328,7 @@ begin
     when v_action in ('screening.completed','candidate.screening_completed') then 'SCREENING_COMPLETED'
     when v_action in ('candidate.qualified','screening.qualified') then 'CANDIDATE_QUALIFIED'
     when v_action in ('submission.created','submission.generated','submission.internal_submitted') then 'SUBMISSION_CREATED'
-    when v_action in ('submission.returned','submission.returned_to_recruiter') then 'SUBMISSION_RETURNED'
+    when v_action in ('submission.returned','submission.returned_to_recruiter','submission.am_returned') then 'SUBMISSION_RETURNED'
     when v_action in ('submission.am_approved','submission.approved') then 'SUBMISSION_AM_APPROVED'
     when v_action in ('submission.client_submitted','client.submitted') then 'CLIENT_SUBMITTED'
     when v_action='client.feedback_received' then 'CLIENT_FEEDBACK_RECEIVED'
