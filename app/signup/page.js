@@ -38,17 +38,17 @@ export default function Signup() {
   return <main className="auth-wrap">
     <section className="auth-art">
       <Brand />
-      <div><div className="eyebrow"><span className="dot" />Enterprise hiring intelligence</div><h1>Turn hiring activity into agency revenue.</h1><p>Create an isolated agency workspace. Email ownership must be verified before the dashboard or recruiter data can be opened.</p></div>
+      <div><div className="eyebrow"><span className="dot" />Recruitment operations</div><h1>Build a better recruiting workflow.</h1><p>Bring your recruiters, account managers and client workflows together. Set up your company, invite your team and start recruiting.</p></div>
       <small className="muted">Workspace isolation · Role-ready access · Audit trail</small>
     </section>
     <section className="auth-main"><div className="form-card">
       <div className="form-kicker">Create workspace</div><h2>Set up your agency</h2><div className="muted">Your first account becomes the workspace owner.</div>
       <form className="form" onSubmit={submit}>
-        {error && <div className="form-error">{error}</div>}
-        <div className="field"><label>Your name</label><input name="name" autoComplete="name" required /></div>
-        <div className="field"><label>Agency / company name</label><input name="agency" autoComplete="organization" required /></div>
-        <div className="field"><label>Work email</label><input name="email" type="email" autoComplete="email" required /></div>
-        <div className="field"><label>Password</label><input name="password" type="password" minLength="12" autoComplete="new-password" required /><small>Minimum 12 characters. Never shared with another workspace.</small></div>
+        {error && <div className="form-error" role="alert">{error}</div>}
+        <div className="field"><label htmlFor="name">Your name</label><input id="name" name="name" autoComplete="name" required /></div>
+        <div className="field"><label htmlFor="agency">Agency / company name</label><input id="agency" name="agency" autoComplete="organization" required /></div>
+        <div className="field"><label htmlFor="email">Work email</label><input id="email" name="email" type="email" autoComplete="email" required /></div>
+        <div className="field"><label htmlFor="password">Password</label><input id="password" name="password" type="password" minLength="12" autoComplete="new-password" required /><small>Minimum 12 characters. Never shared with another workspace.</small></div>
         <button className="btn primary" disabled={busy}>{busy ? 'Creating secure workspace…' : 'Create secure workspace →'}</button>
         <div className="form-note">Already have an account? <Link href="/login">Sign in</Link></div>
       </form>

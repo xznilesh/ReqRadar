@@ -37,7 +37,7 @@ assert.ok(!/p_agency_id/i.test(rpcs.match(/create or replace function public\.xz
 for(const route of ['/candidates','/jobs','/interviews','/offers','/placements','/pipeline'])assert.ok(shell.includes(route),`Navigation missing ${route}`);
 for(const route of ['/candidates','/jobs','/pipeline','/interviews','/offers','/placements'])assert.ok(palette.includes(route),`Command palette missing ${route}`);
 assert.ok(dashboard.includes("onboarding.progress?.status !== 'COMPLETED'")&&dashboard.includes("redirect('/onboarding')"),'Dashboard onboarding server gate regressed');
-assert.ok(dashboard.includes('Workspace blueprint')&&dashboard.includes('No fake statistics'));
+assert.ok(dashboard.includes('Workspace blueprint')&&dashboard.includes('realMetricTotal > 0'));
 assert.ok(candidates.includes('possible_duplicate')&&candidates.includes('Archive')&&candidates.includes('portalAccess'));
 assert.ok(jobs.includes('publicVisibility')&&jobs.includes('pipelineId')&&jobs.includes('salaryPeriod'));
 assert.ok(pipeline.includes('moveApplication')&&pipeline.includes('application_exists'));

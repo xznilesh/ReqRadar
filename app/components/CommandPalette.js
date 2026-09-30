@@ -1,4 +1,5 @@
 'use client';
+import { useModalDialog } from '@/lib/use-modal-dialog';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -49,13 +50,14 @@ export default function CommandPalette({ open, onClose }) {
   useEffect(() => { try { setRecentIds(JSON.parse(localStorage.getItem(RECENTS_KEY) || '[]')); } catch {} }, []);
   const items = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (q) return commandCatalog.filter((item) => `${item.label} ${item.keywords}`.toLowerCase().includes(q));
+    if (q) return commandCatalog.filter((item) => item.enabled && `${item.label} ${item.keywords}`.toLowerCase().includes(q));
     const recent = recentIds.map((id) => commandCatalog.find((item) => item.id === id)).filter(Boolean).map((item) => ({ ...item, group: 'Recent' }));
-    return [...recent, ...commandCatalog.filter((item) => !recentIds.includes(item.id))];
+    return [...recent, ...commandCatalog.filter((item) => item.enabled && !recentIds.includes(item.id))];
   }, [query, recentIds]);
 
   useEffect(() => { if (!open) return; setQuery(''); setActive(0); const timer = setTimeout(() => inputRef.current?.focus(), 20); return () => clearTimeout(timer); }, [open]);
   useEffect(() => { if (active >= items.length) setActive(Math.max(0, items.length - 1)); }, [items.length, active]);
+  useModalDialog(open, onClose, '.command-palette');
   if (!open) return null;
 
   function run(item) {

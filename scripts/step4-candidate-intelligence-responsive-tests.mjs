@@ -3,7 +3,7 @@ import fs from 'node:fs';
 
 const ui=fs.readFileSync('app/components/CandidateIntelligenceWorkspace.js','utf8');
 const css=fs.readFileSync('app/step4-candidate-intelligence.css','utf8');
-const page=fs.readFileSync('app/recruiter/requirements/[jobId]/candidates/[candidateId]/intelligence/page.js','utf8');
+const page=fs.readFileSync('app/recruiter/requirements/[id]/candidates/[candidateId]/intelligence/page.js','utf8');
 const requirement=fs.readFileSync('app/components/RecruiterRequirementWorkspace.js','utf8');
 
 for(const label of [

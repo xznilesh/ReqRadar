@@ -1,7 +1,8 @@
 'use client';
+import { useQuickCreate } from '@/lib/use-quick-create';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import InterviewScorecardDrawer from '@/app/components/InterviewScorecardDrawer';
 import OfferCloseoutDrawer from '@/app/components/OfferCloseoutDrawer';
 
@@ -10,6 +11,8 @@ function formatInZone(value,zone){if(!value)return '—';try{return new Intl.Dat
 const blankOffer=(currency)=>({applicationId:'',title:'',amount:'',currency:currency||'USD',salaryPeriod:'ANNUAL',status:'DRAFT',startDate:'',expiresAt:'',bonus:'',commission:'',ote:'',equity:'',employmentType:'FULL_TIME',parentOfferId:''});
 
 export default function RecruitmentOpsWorkspace({module,context,applications=[],timezones=[],defaultTimezone='UTC',defaultCurrency='USD'}){
+ const params=useSearchParams();
+ useQuickCreate(params.get('action'), openCreate);
  const router=useRouter();const[state,setState]=useState('idle');const[open,setOpen]=useState(false);const[selectedInterview,setSelectedInterview]=useState(null);const[selectedOffer,setSelectedOffer]=useState(null);
  const[interview,setInterview]=useState({applicationId:'',interviewType:'VIDEO',scheduledAt:'',timezone:defaultTimezone,candidateTimezone:'',recruiterTimezone:defaultTimezone,durationMinutes:60,meetingUrl:'',locationOrLink:'',instructions:''});
  const[offer,setOffer]=useState(blankOffer(defaultCurrency));

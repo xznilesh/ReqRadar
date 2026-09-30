@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Brand from '@/app/components/Brand';
@@ -11,6 +11,13 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
+  const [resending, setResending] = useState(false);
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('error') === 'service') {
+      setError('The workspace service is temporarily unavailable. Please try again shortly.');
+    }
+  }, []);
 
   async function submit(event) {
     event.preventDefault();
@@ -39,30 +46,35 @@ export default function Login() {
   }
 
   async function resend() {
-    if (!email) return;
+    if (!email || resending) return;
+    setResending(true);
     setNotice('Sending verification email…');
-    const response = await fetch('/api/auth/resend-verification', {
-      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email })
-    });
-    const data = await response.json();
-    setNotice(data.message || data.error || 'Check your inbox.');
+    try {
+      const response = await fetch('/api/auth/resend-verification', {
+        method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email })
+      });
+      const data = await response.json();
+      setNotice(data.message || data.error || 'Check your inbox.');
+    } catch {
+      setNotice('Could not send the verification email. Check your connection and try again.');
+    } finally { setResending(false); }
   }
 
   return <main className="auth-wrap">
     <section className="auth-art">
       <Brand />
-      <div><div className="eyebrow"><span className="dot" />Secure recruiter workspace</div><h1>Start the day with the right accounts.</h1><p>Your ranked hiring radar, recruiter pipeline and agency intelligence — isolated to your workspace.</p></div>
+      <div><div className="eyebrow"><span className="dot" />Secure recruiter workspace</div><h1>A clear view of your recruiting day.</h1><p>Your requirements, candidates, submissions and follow-ups, together in one agency workspace.</p></div>
       <small className="muted">Verified email · Secure sessions · Workspace isolation</small>
     </section>
     <section className="auth-main"><div className="form-card">
       <div className="form-kicker">XZ Recruiter</div><h2>Welcome back</h2><div className="muted">Sign in to your agency workspace.</div>
       <form className="form" onSubmit={submit}>
-        {error && <div className="form-error">{error}</div>}
-        {notice && <div className="form-info">{notice}</div>}
-        <div className="field"><label>Work email</label><input name="email" type="email" autoComplete="email" required /></div>
-        <div className="field"><div className="field-line"><label>Password</label><Link href="/reset-password">Forgot password?</Link></div><input name="password" type="password" autoComplete="current-password" required /></div>
+        {error && <div className="form-error" role="alert">{error}</div>}
+        {notice && <div className="form-info" role="status">{notice}</div>}
+        <div className="field"><label htmlFor="email">Work email</label><input id="email" name="email" type="email" autoComplete="email" required /></div>
+        <div className="field"><div className="field-line"><label htmlFor="password">Password</label><Link href="/reset-password">Forgot password?</Link></div><input id="password" name="password" type="password" autoComplete="current-password" required /></div>
         <button className="btn primary" disabled={busy}>{busy ? 'Signing in…' : 'Sign in securely →'}</button>
-        {code === 'email_unverified' && <button className="btn" type="button" onClick={resend}>Resend verification email</button>}
+        {code === 'email_unverified' && <button className="btn" type="button" disabled={resending} onClick={resend}>{resending ? 'Sending…' : 'Resend verification email'}</button>}
         <div className="form-note">New to XZ Recruiter? <Link href="/signup">Create a free workspace</Link></div>
       </form>
     </div></section>

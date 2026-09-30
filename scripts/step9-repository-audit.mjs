@@ -20,7 +20,7 @@ const required=[
 ];
 for(const p of required)assert.ok(fs.existsSync(p),'missing locked-roadmap source '+p);
 
-const files=walk('.').filter(p=>!p.startsWith('node_modules')&&!p.startsWith('.git'));
+const files=walk('.').filter(p=>!p.startsWith('node_modules')&&!p.startsWith('.git')&&!p.startsWith('.next')&&!p.startsWith('test-results'));
 const textFiles=files.filter(p=>/.(js|mjs|json|yml|yaml|sql|md|css)$/.test(p));
 const conflict=[];
 const leaks=[];

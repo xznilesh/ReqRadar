@@ -12,7 +12,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
       - run: npm run lint
       - run: npm audit --omit=dev --audit-level=high
       - run: npm run typecheck
@@ -58,6 +58,8 @@ jobs:
       - run: npm run test:step7
       - run: npm run test:step8
       - run: npm run test:step9
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:ui:browser
       - run: npm run build
         env:
           DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/postgres

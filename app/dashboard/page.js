@@ -61,12 +61,12 @@ export default async function Dashboard({ searchParams }) {
     ['icp','Company ICP','/onboarding?section=icp&edit=1'],
     ['pipelines','Recruitment pipeline','/pipeline'],
     ['import','Import candidates','/import'],
-    ['client','Add first client',null],
+    ['client','Add first client','/clients?action=create'],
     ['job','Create first job','/jobs?action=create']
   ];
 
   return <AppShell user={user} globalSettings={settings} active="home">
-    <div className="page-heading dashboard-heading"><div><span className="page-kicker">Recruitment command center</span><h1>{params?.setup === 'complete' ? 'Your recruiter workspace is ready.' : `Good to see you, ${user.display_name || 'Recruiter'}.`}</h1><p>XZRecruiter is configured around your markets, agency focus and workflow—not a generic empty ATS.</p></div><div className="heading-statuses"><span className="status good">● Setup complete</span><span className="status neutral">{settings.country_name} · {settings.timezone_id}</span></div></div>
+    <div className="page-heading dashboard-heading"><div><span className="page-kicker">Recruitment command center</span><h1>{params?.setup === 'complete' ? 'Your recruiter workspace is ready.' : `Good to see you, ${user.display_name || 'Recruiter'}.`}</h1><p>Manage your team’s requirements, candidates and next actions from one workspace.</p></div><div className="heading-statuses"><span className="status good">● Setup complete</span><span className="status neutral">{settings.country_name} · {settings.timezone_id}</span></div></div>
 
     <section className="workspace-blueprint-card" aria-label="Recruitment workspace summary">
       <div className="blueprint-heading"><div><span className="eyebrow-mini">Workspace blueprint</span><h2>{user.agency_name}</h2><p>{localNow}</p></div><Link href="/onboarding?edit=1" className="small-action">Edit setup</Link></div>
@@ -87,16 +87,16 @@ export default async function Dashboard({ searchParams }) {
     </div>
 
     {realMetricTotal > 0 ? <div className="dashmetrics premium-metrics">
-      <div className="dmetric"><span>Tracked companies</span><b>{m.companies || 0}</b><small>real records</small></div>
-      <div className="dmetric"><span>Active jobs</span><b>{m.jobs || 0}</b><small>real requisitions</small></div>
-      <div className="dmetric"><span>Hot accounts</span><b>{m.hot || 0}</b><small>real scored accounts</small></div>
+      <div className="dmetric"><span>Tracked companies</span><b>{m.companies || 0}</b><small>workspace accounts</small></div>
+      <div className="dmetric"><span>Active jobs</span><b>{m.jobs || 0}</b><small>open requirements</small></div>
+      <div className="dmetric"><span>Hot accounts</span><b>{m.hot || 0}</b><small>prioritized accounts</small></div>
       <div className="dmetric"><span>Candidates</span><b>{m.candidates || 0}</b><small>workspace talent</small></div>
-    </div> : <section className="first-run-panel"><div><span className="page-kicker">No fake statistics</span><h2>Your configuration is ready. Start with a candidate or a job.</h2><p>Operational metrics appear only after real recruitment data exists. No demo counts are presented as production data.</p></div><div className="first-run-actions"><Link href="/candidates?action=create">Add candidate</Link><Link href="/jobs?action=create">Create first job</Link><Link href="/import">Import clients or candidates</Link><Link href="/settings?focus=icp">Review target account profile</Link></div></section>}
+    </div> : <section className="first-run-panel"><div><span className="page-kicker">Get started</span><h2>Your next hire starts here.</h2><p>Add your first candidate or client requirement. Your team’s recruiting activity will appear here as you work.</p></div><div className="first-run-actions"><Link href="/candidates?action=create">Add candidate</Link><Link href="/jobs?action=create">Create first job</Link><Link href="/import">Import clients or candidates</Link><Link href="/settings?focus=icp">Review target account profile</Link></div></section>}
 
     <div className="dashboard-config-grid">
-      <section className="setup-checklist-card"><div className="panel-title-row"><div><h2>Workspace readiness</h2><p className="panel-sub">Configured items are real saved workspace settings; ATS modules now accept live recruitment data.</p></div><span className="panel-badge">{onboarding.progress?.progress_percent || 100}% setup</span></div><div className="setup-checklist">{checklist.map(([key,label,href]) => { const done = completed.has(key) || (key === 'client' && Number(m.clients || 0) > 0) || (key === 'job' && Number(m.jobs || 0) > 0); const body = <><span className={done ? 'check done' : 'check'}>{done ? '✓' : '○'}</span><b>{label}</b><small>{done ? 'Ready' : key === 'client' ? 'CRM step later' : 'Open action'}</small></>; return href ? <Link key={key} href={href}>{body}</Link> : <div key={key}>{body}</div>; })}</div></section>
+      <section className="setup-checklist-card"><div className="panel-title-row"><div><h2>Workspace readiness</h2><p className="panel-sub">Keep your agency profile and recruiting workflow ready for your team.</p></div><span className="panel-badge">{onboarding.progress?.progress_percent || 100}% setup</span></div><div className="setup-checklist">{checklist.map(([key,label,href]) => { const done = completed.has(key) || (key === 'client' && Number(m.clients || 0) > 0) || (key === 'job' && Number(m.jobs || 0) > 0); const body = <><span className={done ? 'check done' : 'check'}>{done ? '✓' : '○'}</span><b>{label}</b><small>{done ? 'Ready' : key === 'client' ? 'Add client' : 'Open action'}</small></>; return href ? <Link key={key} href={href}>{body}</Link> : <div key={key}>{body}</div>; })}</div></section>
 
-      <section className="global-context-card compact-context"><div><span className="eyebrow-mini">Operating context</span><h2>{settings.country_name}</h2><p>Step‑2 localization remains active.</p></div><dl><div><dt>Locale</dt><dd>{settings.locale}</dd></div><div><dt>Currency</dt><dd>{settings.currency_code}</dd></div><div><dt>Timezone</dt><dd>{settings.timezone_id}</dd></div><div><dt>Language</dt><dd>{settings.language_code?.toUpperCase()}</dd></div></dl><Link href="/settings/global">Change localization →</Link></section>
+      <section className="global-context-card compact-context"><div><span className="eyebrow-mini">Operating context</span><h2>{settings.country_name}</h2><p>Dates, currency and timezones follow your workspace settings.</p></div><dl><div><dt>Locale</dt><dd>{settings.locale}</dd></div><div><dt>Currency</dt><dd>{settings.currency_code}</dd></div><div><dt>Timezone</dt><dd>{settings.timezone_id}</dd></div><div><dt>Language</dt><dd>{settings.language_code?.toUpperCase()}</dd></div></dl><Link href="/settings/global">Change localization →</Link></section>
     </div>
 
     {(signals.length > 0 || pipeline.length > 0) ? <div className="panels premium-panels">

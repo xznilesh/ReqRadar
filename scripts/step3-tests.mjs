@@ -96,7 +96,8 @@ assert.ok(rpcs.includes("array['profile','markets','industries','icp','specializ
 assert.ok(rpcs.includes("onboarding_status='COMPLETED'"));
 assert.ok(dashboard.includes("onboarding.progress?.status !== 'COMPLETED'"));
 assert.ok(dashboard.includes("redirect('/onboarding')"));
-assert.ok(dashboard.includes('No fake statistics'));
+assert.ok(dashboard.includes('realMetricTotal > 0'), 'Metrics must be gated on persisted workspace records');
+assert.ok(dashboard.includes('Your next hire starts here.'), 'Empty workspaces need a clear next action');
 assert.ok(dashboard.includes('Workspace blueprint'));
 
 for(const domain of ['INDUSTRY','COMPANY_SIZE','COMPANY_TYPE','FUNDING_STAGE','JOB_FUNCTION','SENIORITY','EMPLOYMENT_TYPE','WORK_AUTHORIZATION_STATUS']) assert.ok(rpcs.includes(`'${domain}'`) || core.includes(`'${domain}'`));

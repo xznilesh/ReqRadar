@@ -20,7 +20,7 @@ export default function Brand({ href = '/', compact = false }) {
       />
       <span
         className="brandname"
-        style={{ color: '#f7f8fb', fontSize: compact ? 20 : 22, fontWeight: 800, lineHeight: 1 }}
+        style={{ fontSize: compact ? 20 : 22, fontWeight: 750, lineHeight: 1 }}
       >
         Recruiter
       </span>

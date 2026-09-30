@@ -1,6 +1,10 @@
 # XZ Recruiter
 
-XZRecruiter is a global recruitment intelligence and agency operating system.
+XZRecruiter is a recruitment operations workspace for staffing companies: client requirements, candidates, submissions, interviews, offers and placements.
+
+The September 30 enterprise UI update introduces a light workspace with navy navigation, consistent forms and tables, working quick-create shortcuts, mobile access to all navigation, and browser regression tests. See [release and verification notes](docs/enterprise-ui-release.md).
+
+Install reproducibly with `npm ci`. Run `npm run test:ui:browser` after `npx playwright install chromium`. On environments with an existing Chromium installation, set `UI_BROWSER_EXECUTABLE` to its path.
 
 ## Current engineering state
 

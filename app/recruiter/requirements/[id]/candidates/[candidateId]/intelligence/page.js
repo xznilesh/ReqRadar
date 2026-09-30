@@ -8,7 +8,7 @@ import { candidateAiConfigured } from '@/lib/candidate-ai-server';
 export const dynamic='force-dynamic';
 
 export default async function CandidateIntelligencePage({params}){
-  const {jobId,candidateId}=await params;
+  const {id:jobId,candidateId}=await params;
   const {user,globalContext}=await requireReadyWorkspace();
   const context=await getCandidateIntelligenceContext(jobId,candidateId).catch(()=>null);
   if(!context?.ok||!context.candidate||!context.job)notFound();

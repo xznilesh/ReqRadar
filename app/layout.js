@@ -16,10 +16,11 @@ import './step5-closeout.css';
 import './step5-screening.css';
 import './step6-submission.css';
 import './step8-manager-control.css';
+import './enterprise.css';
 
 export const metadata = {
-  title: 'XZ Recruiter — Hiring Intelligence for Recruitment Agencies',
-  description: 'Know who is hiring, why now, and what your recruiters should do next.',
+  title: 'XZ Recruiter — Recruitment Operations',
+  description: 'A connected recruiting workspace for requirements, candidates, submissions, interviews, offers and placements.',
   icons: { icon: '/xzrecruiter-logo.svg' }
 };
 
