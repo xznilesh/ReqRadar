@@ -23,6 +23,7 @@ function validateEvidence(name){
 }
 
 run('node',['scripts/step9-repository-audit.mjs'],'repository_audit_failed');
+run('node',['scripts/phase0-migration-reconciliation.mjs','--release'],'migration_reconciliation_failed');
 
 const migrations=fs.readdirSync('supabase/migrations').filter(x=>x.endsWith('.sql'));
 const versions=migrations.map(x=>x.split('_')[0]);
