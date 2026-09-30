@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+const migrationPath=(logicalName)=>{const matches=fs.readdirSync('supabase/migrations').filter(f=>f.endsWith(`_${logicalName}.sql`));assert.equal(matches.length,1,`expected exactly one canonical migration for ${logicalName}`);return 'supabase/migrations/'+matches[0]};
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -9,8 +10,8 @@ const importSource = async (p) => import(`data:text/javascript;base64,${Buffer.f
 const g = await importSource('lib/globalization.js');
 const i18n = await importSource('i18n/resources.js');
 const fixtures = JSON.parse(read('tests/fixtures/global-markets.json'));
-const migration = read('supabase/migrations/20260903_step2_global_operating_foundation.sql');
-const hardening = read('supabase/migrations/20260903_step2_global_integrity_hardening.sql');
+const migration = read(migrationPath('step2_global_operating_foundation'));
+const hardening = read(migrationPath('step2_global_integrity_hardening'));
 const css = `${read('app/foundation.css')}\n${read('app/step2.css')}`;
 const shell = read('app/components/AppShell.js');
 const workspaceSelector = read('app/components/WorkspaceSelector.js');
