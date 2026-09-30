@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+const migrationPath=(logicalName)=>{const matches=fs.readdirSync('supabase/migrations').filter(f=>f.endsWith(`_${logicalName}.sql`));assert.equal(matches.length,1,`expected exactly one canonical migration for ${logicalName}`);return 'supabase/migrations/'+matches[0]};
 
-const core=fs.readFileSync('supabase/migrations/20260929_step8_automation_manager_core.sql','utf8');
-const rpcs=fs.readFileSync('supabase/migrations/20260929_step8_automation_manager_rpcs.sql','utf8');
+const core=fs.readFileSync(migrationPath('step8_automation_manager_core'),'utf8');
+const rpcs=fs.readFileSync(migrationPath('step8_automation_manager_rpcs'),'utf8');
 const api=fs.readFileSync('app/api/manager-control/route.js','utf8');
 const cronApi=fs.readFileSync('app/api/automation/run/route.js','utf8');
 const managerUi=fs.readFileSync('app/components/ManagerControlCenter.js','utf8');
