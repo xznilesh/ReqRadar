@@ -69,7 +69,18 @@ if(duplicateLiveSubmissions)throw new Error('duplicate_live_submissions='+duplic
 const impossibleClientSubmit=count(`
 select count(*) from public.candidate_submissions s
 where s.workflow_status='CLIENT_SUBMITTED'
-and (s.status<>'SUBMITTED' or s.client_submitted_at is null or s.am_approved_at is null);`);
+and (
+  s.status<>'SUBMITTED'
+  or s.client_submitted_at is null
+  or s.am_reviewed_at is null
+  or not exists (
+    select 1
+    from public.submission_review_history h
+    where h.agency_id=s.agency_id
+      and h.submission_id=s.id
+      and h.decision='APPROVED'
+  )
+);`);
 if(impossibleClientSubmit)throw new Error('impossible_client_submission_state='+impossibleClientSubmit);
 
 console.log('STEP9_LIVE_DB_PASS migration_history=true rls=true direct_grants=0 health_rpc=true orphans=0 duplicate_live_submissions=0 impossible_states=0');
