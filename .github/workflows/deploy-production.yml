@@ -19,6 +19,15 @@ jobs:
           node-version: 22
       - run: npm ci --no-audit --no-fund
       - run: npm run test:step9
+      - name: Full Step-9 release certification gate
+        run: npm run test:step9:release
+        env:
+          XZRECRUITER_DATABASE_URL: ${{ secrets.XZRECRUITER_DATABASE_URL }}
+          XZRECRUITER_RELEASE_BASE_URL: https://xzrecruiter.vercel.app
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          XZRECRUITER_BACKUP_RESTORE_EVIDENCE: ${{ secrets.XZRECRUITER_BACKUP_RESTORE_EVIDENCE }}
+          XZRECRUITER_BROWSER_E2E_EVIDENCE: ${{ secrets.XZRECRUITER_BROWSER_E2E_EVIDENCE }}
+          XZRECRUITER_PILOT_EVIDENCE: ${{ secrets.XZRECRUITER_PILOT_EVIDENCE }}
       - run: npx playwright install --with-deps chromium
       - run: npm run test:ui:browser
       - run: npm run build
