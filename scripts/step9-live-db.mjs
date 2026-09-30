@@ -75,10 +75,12 @@ and (
   or s.am_reviewed_at is null
   or not exists (
     select 1
-    from public.submission_review_history h
+    from public.candidate_submission_reviews h
     where h.agency_id=s.agency_id
       and h.submission_id=s.id
-      and h.decision='APPROVED'
+      and h.decision='APPROVE'
+      and h.submission_version_id=s.current_version_id
+      and h.submission_version_number=s.latest_version_number
   )
 );`);
 if(impossibleClientSubmit)throw new Error('impossible_client_submission_state='+impossibleClientSubmit);
