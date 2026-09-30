@@ -3,17 +3,23 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const strict=process.argv.includes('--release');
+const migrationDir='supabase/migrations';
+const migrationPath=(logicalName)=>{
+ const matches=fs.readdirSync(migrationDir).filter(f=>f.endsWith(`_${logicalName}.sql`));
+ assert.equal(matches.length,1,'expected exactly one canonical migration for '+logicalName);
+ return path.join(migrationDir,matches[0]);
+};
 function walk(dir){return fs.existsSync(dir)?fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>{const p=path.join(dir,e.name);return e.isDirectory()?walk(p):[p]}):[]}
 const required=[
  'docs/step1-workflow-contract.md',
- 'supabase/migrations/20260925_step1_workflow_contract_lock.sql',
- 'supabase/migrations/20260925_step2_ai_jd_brain.sql',
- 'supabase/migrations/20260926_step3_recruiter_execution_workspace.sql',
- 'supabase/migrations/20260927_step4_candidate_intelligence_core.sql',
- 'supabase/migrations/20260925_step5_ai_assisted_human_screening.sql',
- 'supabase/migrations/20260925_step6_submission_pack_core.sql',
- 'supabase/migrations/20260928_step7_enterprise_multitenant_security_foundation.sql',
- 'supabase/migrations/20260929_step8_automation_manager_core.sql',
+ migrationPath('step1_workflow_contract_lock'),
+ migrationPath('step2_ai_jd_brain'),
+ migrationPath('step3_recruiter_execution_workspace'),
+ migrationPath('step4_candidate_intelligence_core'),
+ migrationPath('step5_ai_assisted_human_screening'),
+ migrationPath('step6_submission_pack_core'),
+ migrationPath('step7_enterprise_multitenant_security_foundation'),
+ migrationPath('step8_automation_manager_core'),
  'app/api/health/ready/route.js','app/api/requirements/jd/route.js','app/api/candidate-intelligence/route.js',
  'app/api/submissions/route.js','app/api/automation/run/route.js','app/api/manager-control/route.js',
  'tests/fixtures/jd-regression.json','tests/fixtures/candidate-intelligence-regression.json','tests/fixtures/step5-screening.json','tests/fixtures/submission-pack-regression.json'
