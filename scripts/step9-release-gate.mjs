@@ -6,7 +6,21 @@ function run(command,args,label){
  const r=spawnSync(command,args,{stdio:'inherit',env:process.env});
  if(r.status!==0)blockers.push(label);
 }
-function missing(name){if(!String(process.env[name]||'').trim())blockers.push('missing_env:'+name)}
+function validateEvidence(name){
+ const raw=String(process.env[name]||'').trim();
+ if(!raw){blockers.push('missing_evidence:'+name);return}
+ let evidence;
+ try{evidence=JSON.parse(raw)}catch{blockers.push('invalid_evidence_json:'+name);return}
+ if(evidence?.status!=='PASS'){blockers.push('evidence_not_pass:'+name);return}
+ if(!String(evidence?.artifact||'').trim()||!String(evidence?.sha256||'').match(/^[a-f0-9]{64}$/i)){
+   blockers.push('evidence_artifact_unbound:'+name);return;
+ }
+ const observed=Date.parse(evidence?.observedAt||'');
+ if(!Number.isFinite(observed)){blockers.push('evidence_time_invalid:'+name);return}
+ const maxAgeMs=7*24*60*60*1000;
+ if(observed>Date.now()+5*60*1000||Date.now()-observed>maxAgeMs){blockers.push('evidence_stale:'+name);return}
+ if(!String(evidence?.scope||'').trim()){blockers.push('evidence_scope_missing:'+name)}
+}
 
 run('node',['scripts/step9-repository-audit.mjs'],'repository_audit_failed');
 
@@ -39,7 +53,7 @@ for(const evidence of [
  'XZRECRUITER_BACKUP_RESTORE_EVIDENCE',
  'XZRECRUITER_BROWSER_E2E_EVIDENCE',
  'XZRECRUITER_PILOT_EVIDENCE'
-])missing(evidence);
+])validateEvidence(evidence);
 
 if(blockers.length){
  console.error('STEP9_RELEASE_BLOCKED '+JSON.stringify([...new Set(blockers)]));
