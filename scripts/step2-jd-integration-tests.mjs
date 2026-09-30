@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+const migrationPath=(logicalName)=>{const matches=fs.readdirSync('supabase/migrations').filter(f=>f.endsWith(`_${logicalName}.sql`));assert.equal(matches.length,1,`expected exactly one canonical migration for ${logicalName}`);return 'supabase/migrations/'+matches[0]};
 import { analyzeJdWithProvider,createJdIdempotencyKey } from '../lib/jd-ai.mjs';
 import { mockOutputForFixture } from './jd-test-helpers.mjs';
 
@@ -20,7 +21,7 @@ const key1=createJdIdempotencyKey({jobId:'job1',sourceId:'source1',jdText:fixtur
 const key2=createJdIdempotencyKey({jobId:'job1',sourceId:'source1',jdText:fixture.text});
 assert.equal(key1,key2);
 
-const sql=fs.readFileSync('supabase/migrations/20260925_step2_ai_jd_brain.sql','utf8');
+const sql=fs.readFileSync(migrationPath('step2_ai_jd_brain'),'utf8');
 for(const token of [
   'requirement_jd_sources','requirement_ai_runs','requirement_hiring_briefs','requirement_criteria',
   'requirement_clarifications','requirement_brief_audit','xzrecruiter_prepare_jd_source',
