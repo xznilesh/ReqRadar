@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+const migrationPath=(logicalName)=>{const matches=fs.readdirSync('supabase/migrations').filter(f=>f.endsWith(`_${logicalName}.sql`));assert.equal(matches.length,1,`expected exactly one canonical migration for ${logicalName}`);return 'supabase/migrations/'+matches[0]};
 import { ROLE_PERMISSIONS } from '../lib/security-policy.mjs';
 
-const sql=fs.readFileSync('supabase/migrations/20260928_step7_enterprise_multitenant_security_foundation.sql','utf8');
+const sql=fs.readFileSync(migrationPath('step7_enterprise_multitenant_security_foundation'),'utf8');
 
 for(const token of [
   'u.disabled_at is null','am.active=true','s.revoked_at is null','s.expires_at>now()',
