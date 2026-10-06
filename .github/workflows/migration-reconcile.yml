@@ -1,0 +1,28 @@
+name: XZRecruiter migration reconciliation report
+on:
+  workflow_dispatch:
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+      - name: Read-only local ↔ remote migration comparison
+        run: node scripts/step9-migration-reconcile-report.mjs
+        env:
+          XZRECRUITER_DATABASE_URL: ${{ secrets.XZRECRUITER_DATABASE_URL }}
+      - name: Upload reconciliation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: migration-reconcile-${{ github.run_id }}
+          path: test-results/migration-reconcile-report.json
+          if-no-files-found: warn
