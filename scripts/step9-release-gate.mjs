@@ -6,6 +6,7 @@ function run(command,args,label){const r=spawnSync(command,args,{stdio:'inherit'
 function missing(name){if(!String(process.env[name]||'').trim())blockers.push('missing_env:'+name)}
 
 run('node',['scripts/step9-repository-audit.mjs','--release'],'repository_audit_failed');
+run('node',['scripts/step9-enterprise-capability-audit.mjs'],'enterprise_capability_source_failed');
 
 const migrations=fs.readdirSync('supabase/migrations').filter(x=>x.endsWith('.sql'));
 const versions=migrations.map(x=>x.split('_')[0]);
