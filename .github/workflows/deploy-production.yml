@@ -98,13 +98,15 @@ jobs:
         run: |
           STAGED_URL="$STAGED_URL" node --input-type=module -e '
             const base=process.env.STAGED_URL;
-            const r=await fetch(base+"/api/health/ready",{cache:"no-store"});
+            const bypass=process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+            const r=await fetch(base+"/api/health/ready",{cache:"no-store",headers:bypass?{"x-vercel-protection-bypass":bypass}:undefined});
             const body=await r.json().catch(()=>null);
             console.log(r.status,body);
             if(r.status!==200||body?.ok!==true||body?.database!=="ready")process.exit(1);
           '
         env:
           STAGED_URL: ${{ steps.stage.outputs.url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
       - name: Enterprise browser golden path on exact staged build
         run: npm run test:step9:browser-live
@@ -116,6 +118,7 @@ jobs:
           XZRECRUITER_E2E_APPLICATION_ID: ${{ vars.XZRECRUITER_E2E_APPLICATION_ID }}
           XZRECRUITER_E2E_CANDIDATE_NAME: ${{ vars.XZRECRUITER_E2E_CANDIDATE_NAME }}
           XZRECRUITER_E2E_JOB_TITLE: ${{ vars.XZRECRUITER_E2E_JOB_TITLE }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
       - name: Hard enterprise release gate
         run: npm run test:step9:release
