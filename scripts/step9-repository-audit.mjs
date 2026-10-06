@@ -16,14 +16,14 @@ const required=[
  'supabase/migrations/20260929_step8_automation_manager_core.sql',
  'app/api/health/ready/route.js','app/api/requirements/jd/route.js','app/api/candidate-intelligence/route.js',
  'app/api/submissions/route.js','app/api/automation/run/route.js','app/api/manager-control/route.js',
- 'tests/fixtures/jd-regression.json','tests/fixtures/candidate-intelligence-regression.json','tests/fixtures/step5-screening.json','tests/fixtures/submission-pack-regression.json'
+ 'tests/fixtures/jd-regression.json','tests/fixtures/candidate-intelligence-regression.json','tests/fixtures/step5-screening.json','tests/fixtures/submission-pack-regression.json',
+ 'package-lock.json','scripts/enterprise-browser-e2e.mjs','scripts/step9-postgres-load.mjs','scripts/step9-postgres-load.sql'
 ];
-for(const p of required)assert.ok(fs.existsSync(p),'missing locked-roadmap source '+p);
+for(const p of required)assert.ok(fs.existsSync(p),'missing release source '+p);
 
 const files=walk('.').filter(p=>!p.startsWith('node_modules')&&!p.startsWith('.git')&&!p.startsWith('.next')&&!p.startsWith('test-results'));
-const textFiles=files.filter(p=>/.(js|mjs|json|yml|yaml|sql|md|css)$/.test(p));
-const conflict=[];
-const leaks=[];
+const textFiles=files.filter(p=>/\.(js|mjs|json|yml|yaml|sql|md|css)$/.test(p));
+const conflict=[];const leaks=[];
 const secretRules=[
  ['openai',/\bsk-[A-Za-z0-9_-]{20,}\b/g],['database',/postgres(?:ql)?:\/\/[^\s:'"]+:[^\s@'"]+@[^\s'"]+/gi],
  ['private_key',/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/g],['supabase_jwt',/\beyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\b/g]
@@ -37,21 +37,32 @@ for(const file of textFiles){
 assert.deepEqual(conflict,[],'merge conflict markers remain');
 assert.deepEqual(leaks,[],'secret-like committed material detected');
 
+const pkg=JSON.parse(fs.readFileSync('package.json','utf8'));
+const lock=JSON.parse(fs.readFileSync('package-lock.json','utf8'));
+assert.equal(lock.lockfileVersion,3,'npm lockfile v3 required');
+const root=lock.packages?.['']||{};
+for(const group of ['dependencies','devDependencies']){
+ const wanted=pkg[group]||{},locked=root[group]||{};
+ assert.deepEqual(Object.keys(locked).sort(),Object.keys(wanted).sort(),`package-lock root ${group} set differs from package.json`);
+ for(const [name,version] of Object.entries(wanted))assert.equal(locked[name],version,`lockfile mismatch for ${name}`);
+}
+for(const workflow of ['.github/workflows/verify.yml','.github/workflows/release-gate.yml','.github/workflows/deploy-production.yml']){
+ const c=fs.readFileSync(workflow,'utf8');
+ assert.ok(c.includes('npm ci --no-audit --no-fund'),workflow+' must use deterministic npm ci');
+}
+
 const migrations=fs.readdirSync('supabase/migrations').filter(x=>x.endsWith('.sql')).sort();
 const versions=new Map();
-for(const file of migrations){
- const version=file.split('_')[0];
- if(!versions.has(version))versions.set(version,[]);
- versions.get(version).push(file);
-}
+for(const file of migrations){const version=file.split('_')[0];if(!versions.has(version))versions.set(version,[]);versions.get(version).push(file);}
 const duplicateVersions=[...versions.entries()].filter(([,v])=>v.length>1);
 const apiRoutes=walk('app/api').filter(p=>p.endsWith('route.js')).length;
-const pkg=JSON.parse(fs.readFileSync('package.json','utf8'));
 for(const layer of ['unit','integration','e2e','security','ai','performance'])assert.ok(pkg.scripts['test:step9:'+layer],'missing Step-9 layer '+layer);
 assert.ok(!Object.keys(pkg.scripts).some(k=>/step10/i.test(k)),'Step 10 must not exist');
+const scanner=fs.readFileSync('lib/malware-scan.js','utf8');
+assert.ok(scanner.includes("throw new Error('malware_scan_not_configured')"),'private uploads must fail closed when malware scanner is unavailable');
 
-console.log('STEP9_REPOSITORY_AUDIT source_files='+textFiles.length+' api_routes='+apiRoutes+' migrations='+migrations.length+' conflicts=0 secret_patterns=0');
+console.log('STEP9_REPOSITORY_AUDIT source_files='+textFiles.length+' api_routes='+apiRoutes+' migrations='+migrations.length+' conflicts=0 secret_patterns=0 deterministic_install=true malware_fail_closed=true');
 if(duplicateVersions.length){
- console.log('STEP9_AUDIT_P0 duplicate_migration_versions='+duplicateVersions.map(([v,a])=>v+':'+a.length).join(','));
+ console.error('STEP9_AUDIT_P0 duplicate_migration_versions='+duplicateVersions.map(([v,a])=>v+':'+a.length).join(','));
  if(strict)process.exit(2);
 }
