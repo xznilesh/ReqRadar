@@ -134,6 +134,20 @@ jobs:
           XZRECRUITER_TENANT_B_DOCUMENT_ID: ${{ vars.XZRECRUITER_TENANT_B_DOCUMENT_ID }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
+      - name: Live dual-tenant isolation on exact staged build
+        run: npm run test:step9:tenant-live
+        env:
+          XZRECRUITER_E2E_BASE_URL: ${{ steps.stage.outputs.url }}
+          XZRECRUITER_TENANT_A_EMAIL: ${{ secrets.XZRECRUITER_TENANT_A_EMAIL }}
+          XZRECRUITER_TENANT_A_PASSWORD: ${{ secrets.XZRECRUITER_TENANT_A_PASSWORD }}
+          XZRECRUITER_TENANT_A_CANDIDATE_ID: ${{ vars.XZRECRUITER_TENANT_A_CANDIDATE_ID }}
+          XZRECRUITER_TENANT_A_DOCUMENT_ID: ${{ vars.XZRECRUITER_TENANT_A_DOCUMENT_ID }}
+          XZRECRUITER_TENANT_B_EMAIL: ${{ secrets.XZRECRUITER_TENANT_B_EMAIL }}
+          XZRECRUITER_TENANT_B_PASSWORD: ${{ secrets.XZRECRUITER_TENANT_B_PASSWORD }}
+          XZRECRUITER_TENANT_B_CANDIDATE_ID: ${{ vars.XZRECRUITER_TENANT_B_CANDIDATE_ID }}
+          XZRECRUITER_TENANT_B_DOCUMENT_ID: ${{ vars.XZRECRUITER_TENANT_B_DOCUMENT_ID }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+
       - name: Hard enterprise release gate
         run: npm run test:step9:release
         env:
