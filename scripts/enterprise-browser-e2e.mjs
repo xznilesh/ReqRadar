@@ -11,10 +11,15 @@ const candidateName=required('XZRECRUITER_E2E_CANDIDATE_NAME');
 const jobTitle=required('XZRECRUITER_E2E_JOB_TITLE');
 const expectedJourney=['JD','SOURCING','SCREENING','SUBMISSION','INTERVIEW','OFFER','JOINING'];
 const output=process.env.XZRECRUITER_E2E_ARTIFACT_DIR||'test-results/enterprise-e2e';
+const bypass=String(process.env.VERCEL_AUTOMATION_BYPASS_SECRET||'').trim();
 const browser=await chromium.launch({headless:true});
 let context;
 try{
-  context=await browser.newContext({baseURL:base,recordVideo:process.env.XZRECRUITER_E2E_VIDEO==='true'?{dir:output}:undefined});
+  context=await browser.newContext({
+    baseURL:base,
+    ...(bypass?{extraHTTPHeaders:{'x-vercel-protection-bypass':bypass,'x-vercel-set-bypass-cookie':'true'}}:{}),
+    recordVideo:process.env.XZRECRUITER_E2E_VIDEO==='true'?{dir:output}:undefined
+  });
   const page=await context.newPage();
   const runtimeErrors=[];
   page.on('pageerror',e=>runtimeErrors.push(e.message));
