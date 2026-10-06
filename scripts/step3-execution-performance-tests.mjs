@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import { performance } from 'node:perf_hooks';
 import { sortPriorityRequirements } from '../lib/recruiter-execution.mjs';
 
-const sql=fs.readFileSync('supabase/migrations/20260926_step3_recruiter_execution_workspace.sql','utf8');
+const sql=fs.readFileSync('supabase/migrations/20260926152551_20260926_step3_recruiter_execution_workspace.sql','utf8');
 const workspace=fs.readFileSync('app/components/RecruiterRequirementWorkspace.js','utf8');
 
 for(const index of [

@@ -4,11 +4,11 @@ import { CANDIDATE_AI_SYSTEM_INSTRUCTIONS,enforceCandidateAiSafetyContracts } fr
 import { detectCandidatePromptInjectionSignals } from '../lib/candidate-intelligence.mjs';
 import { aiOutputForFixture,loadFixtures } from './step4-candidate-intelligence-test-helpers.mjs';
 
-const core=fs.readFileSync('supabase/migrations/20260927_step4_candidate_intelligence_core.sql','utf8');
-const a=fs.readFileSync('supabase/migrations/20260927_step4_candidate_intelligence_rpcs_a.sql','utf8');
-const b=fs.readFileSync('supabase/migrations/20260927_step4_candidate_intelligence_rpcs_b.sql','utf8');
-const stale=fs.readFileSync('supabase/migrations/20260927_step4_candidate_intelligence_stale_guards.sql','utf8');
-const step3=fs.readFileSync('supabase/migrations/20260926_step3_recruiter_execution_workspace.sql','utf8');
+const core=fs.readFileSync('supabase/migrations/20260926152601_20260927_step4_candidate_intelligence_core.sql','utf8');
+const a=fs.readFileSync('supabase/migrations/20260926152606_20260927_step4_candidate_intelligence_rpcs_a.sql','utf8');
+const b=fs.readFileSync('supabase/migrations/20260926153440_20260927_step4_candidate_intelligence_rpcs_b.sql','utf8');
+const stale=fs.readFileSync('supabase/migrations/20260926153444_20260927_step4_candidate_intelligence_stale_guards.sql','utf8');
+const step3=fs.readFileSync('supabase/migrations/20260926152551_20260926_step3_recruiter_execution_workspace.sql','utf8');
 const api=fs.readFileSync('app/api/candidate-intelligence/route.js','utf8');
 const resume=fs.readFileSync('app/api/recruiter/resume/route.js','utf8');
 const ui=fs.readFileSync('app/components/CandidateIntelligenceWorkspace.js','utf8');

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const core=fs.readFileSync('supabase/migrations/20260929_step8_automation_manager_core.sql','utf8');
-const rpcs=fs.readFileSync('supabase/migrations/20260929_step8_automation_manager_rpcs.sql','utf8');
+const core=fs.readFileSync('supabase/migrations/20260926153517_20260929_step8_automation_manager_core.sql','utf8');
+const rpcs=fs.readFileSync('supabase/migrations/20260926153522_20260929_step8_automation_manager_rpcs.sql','utf8');
 const api=fs.readFileSync('app/api/manager-control/route.js','utf8');
 const cronApi=fs.readFileSync('app/api/automation/run/route.js','utf8');
 const managerUi=fs.readFileSync('app/components/ManagerControlCenter.js','utf8');

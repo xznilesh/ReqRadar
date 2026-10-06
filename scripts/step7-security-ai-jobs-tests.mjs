@@ -34,7 +34,7 @@ for(const file of vectorFiles){
   }
 }
 
-const step7=fs.readFileSync('supabase/migrations/20260928_step7_enterprise_multitenant_security_foundation.sql','utf8');
+const step7=fs.readFileSync('supabase/migrations/20260926153512_20260928_step7_enterprise_multitenant_security_foundation.sql','utf8');
 assert.ok(step7.includes('security_rate_limits'),'durable job/cost protection foundation missing');
 assert.ok(step7.includes('private.xzrecruiter_session_context'),'job-triggering business RPCs must derive tenant/session context');
 

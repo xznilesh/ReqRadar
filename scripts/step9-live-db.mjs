@@ -19,12 +19,32 @@ function query(sql){
 function count(sql){return Number(query(sql)||0)}
 
 const migrations=fs.readdirSync('supabase/migrations').filter(x=>x.endsWith('.sql')).sort();
-const localVersions=migrations.map(x=>x.split('_')[0]);
+const localMigrations=migrations.map((file)=>{
+  const match=file.match(/^(\\d+)_([^/]+)\\.sql$/);
+  if(!match)throw new Error('invalid_migration_filename='+file);
+  return {version:match[1],name:match[2]};
+});
+const localVersions=localMigrations.map(x=>x.version);
 if(new Set(localVersions).size!==localVersions.length)throw new Error('local_migration_versions_not_unique');
-const remoteRaw=query("select version from supabase_migrations.schema_migrations order by version;");
-const remoteVersions=remoteRaw?remoteRaw.split(/\r?\n/).filter(Boolean):[];
-if(JSON.stringify(remoteVersions)!==JSON.stringify(localVersions)){
-  throw new Error('migration_history_drift local='+localVersions.length+' remote='+remoteVersions.length);
+
+const remoteRaw=query("select version||'|'||name from supabase_migrations.schema_migrations order by version;");
+const remoteMigrations=remoteRaw
+  ? remoteRaw.split(/\\r?\\n/).filter(Boolean).map((line)=>{
+      const split=line.indexOf('|');
+      return {version:line.slice(0,split),name:line.slice(split+1)};
+    })
+  : [];
+const remotePairs=new Set(remoteMigrations.map(x=>x.version+'|'+x.name));
+const missingLocal=localMigrations.filter(x=>!remotePairs.has(x.version+'|'+x.name));
+if(missingLocal.length){
+  throw new Error('migration_history_drift missing='+missingLocal.map(x=>x.version+'_'+x.name).join(','));
+}
+const unexpectedRemote=remoteMigrations.filter(x=>
+  !localMigrations.some(l=>l.version===x.version&&l.name===x.name) &&
+  !String(x.name||'').startsWith('step9_bootstrap_')
+);
+if(unexpectedRemote.length){
+  throw new Error('migration_history_untracked_remote='+unexpectedRemote.map(x=>x.version+'_'+x.name).join(','));
 }
 
 const missingRls=count(`
@@ -69,7 +89,7 @@ if(duplicateLiveSubmissions)throw new Error('duplicate_live_submissions='+duplic
 const impossibleClientSubmit=count(`
 select count(*) from public.candidate_submissions s
 where s.workflow_status='CLIENT_SUBMITTED'
-and (s.status<>'SUBMITTED' or s.client_submitted_at is null or s.am_approved_at is null);`);
+and (s.status<>'SUBMITTED' or s.client_submitted_at is null or s.am_reviewed_at is null);`);
 if(impossibleClientSubmit)throw new Error('impossible_client_submission_state='+impossibleClientSubmit);
 
 console.log('STEP9_LIVE_DB_PASS migration_history=true rls=true direct_grants=0 health_rpc=true orphans=0 duplicate_live_submissions=0 impossible_states=0');

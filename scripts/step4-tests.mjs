@@ -11,13 +11,13 @@ for(const p of [
  'app/jobs/public/[slug]/page.js','app/portal/candidate/[token]/page.js','app/api/ats/route.js','app/api/public/apply/route.js',
  'app/components/CandidateWorkspace.js','app/components/JobWorkspace.js','app/components/PipelineWorkspace.js','app/components/RecruitmentOpsWorkspace.js','app/components/PublicApplyForm.js',
  'lib/ats.js','lib/workspace-ready.js','app/step4.css',
- 'supabase/migrations/20260903_step4_enterprise_ats_core.sql','supabase/migrations/20260903_step4_enterprise_ats_rpcs.sql',
- 'supabase/migrations/20260903_step4_legacy_constraint_compatibility.sql','supabase/migrations/20260903_step4_z_dashboard_metrics.sql'
+ 'supabase/migrations/20260926152056_20260903_step4_enterprise_ats_core.sql','supabase/migrations/20260926152125_20260903_step4_enterprise_ats_rpcs.sql',
+ 'supabase/migrations/20260926152206_20260903_step4_legacy_constraint_compatibility.sql','supabase/migrations/20260926152215_20260903_step4_z_dashboard_metrics.sql'
 ])must(p);
 
-const core=read('supabase/migrations/20260903_step4_enterprise_ats_core.sql');
-const rpcs=read('supabase/migrations/20260903_step4_enterprise_ats_rpcs.sql');
-const compatibility=read('supabase/migrations/20260903_step4_legacy_constraint_compatibility.sql');
+const core=read('supabase/migrations/20260926152056_20260903_step4_enterprise_ats_core.sql');
+const rpcs=read('supabase/migrations/20260926152125_20260903_step4_enterprise_ats_rpcs.sql');
+const compatibility=read('supabase/migrations/20260926152206_20260903_step4_legacy_constraint_compatibility.sql');
 const shell=read('app/components/AppShell.js');
 const palette=read('app/components/CommandPalette.js');
 const css=read('app/step4.css');

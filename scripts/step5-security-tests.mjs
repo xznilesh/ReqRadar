@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-const files=['supabase/migrations/20260903_step5_recruitment_crm_core.sql','supabase/migrations/20260903_step5_recruitment_crm_rpcs.sql','supabase/migrations/20260903_step5_tenant_integrity_hardening.sql','supabase/migrations/20260903_step5_client_vendor_portals.sql'];
+const files=['supabase/migrations/20260926152427_20260903_step5_recruitment_crm_core.sql','supabase/migrations/20260926152438_20260903_step5_recruitment_crm_rpcs.sql','supabase/migrations/20260926152458_20260903_step5_tenant_integrity_hardening.sql','supabase/migrations/20260926152448_20260903_step5_client_vendor_portals.sql'];
 const text=files.map(f=>fs.readFileSync(f,'utf8')).join('\n');
 const assertions=[
  ['session-derived workspace','private.xzrecruiter_session_context'],

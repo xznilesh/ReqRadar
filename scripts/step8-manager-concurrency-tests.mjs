@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const core=fs.readFileSync('supabase/migrations/20260929_step8_automation_manager_core.sql','utf8');
-const sql=fs.readFileSync('supabase/migrations/20260929_step8_automation_manager_rpcs.sql','utf8');
+const core=fs.readFileSync('supabase/migrations/20260926153517_20260929_step8_automation_manager_core.sql','utf8');
+const sql=fs.readFileSync('supabase/migrations/20260926153522_20260929_step8_automation_manager_rpcs.sql','utf8');
 const ui=fs.readFileSync('app/components/ManagerRequirementControl.js','utf8');
 
 assert.ok(core.includes('unique(agency_id,dedupe_key)'),'alert duplicate prevention missing');

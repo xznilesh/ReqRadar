@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const sql=fs.readFileSync('supabase/migrations/20260926_step3_recruiter_execution_workspace.sql','utf8');
+const sql=fs.readFileSync('supabase/migrations/20260926152551_20260926_step3_recruiter_execution_workspace.sql','utf8');
 const api=fs.readFileSync('app/api/ats/route.js','utf8');
 const recruiterApi=fs.readFileSync('app/api/recruiter/route.js','utf8');
 const resumeApi=fs.readFileSync('app/api/recruiter/resume/route.js','utf8');

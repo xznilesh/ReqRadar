@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises
 const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
 const [domain,route,api,core,rpcs,recruiterPage,amPage,queuePage,ui,queueUi,css]=await Promise.all([
   read('lib/submission-pack.mjs'),read('app/api/submissions/route.js'),read('lib/submissions.js'),
-  read('supabase/migrations/20260925_step6_submission_pack_core.sql'),read('supabase/migrations/20260925_step6_submission_pack_rpcs.sql'),
+  read('supabase/migrations/20260926153500_20260925_step6_submission_pack_core.sql'),read('supabase/migrations/20260926153505_20260925_step6_submission_pack_rpcs.sql'),
   read('app/recruiter/submissions/[applicationId]/page.js'),read('app/account-manager/submissions/[applicationId]/page.js'),read('app/account-manager/submissions/page.js'),
   read('app/components/SubmissionPackWorkspace.js'),read('app/components/AccountManagerSubmissionQueue.js'),read('app/step6-submission.css')]);
 for(const x of ['CLIENT_CONFIRMED','RESUME','AI_DERIVED','CANDIDATE_DECLARED','RECRUITER_VERIFIED','DOCUMENT_VERIFIED','ACCOUNT_MANAGER_CONFIRMED','UNKNOWN'])assert.ok(domain.includes(x),'missing provenance '+x);

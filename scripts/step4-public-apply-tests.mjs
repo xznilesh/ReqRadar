@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const sql=fs.readFileSync('supabase/migrations/20260903_step4_zzzzzzzzzz_public_apply_resume.sql','utf8');
+const sql=fs.readFileSync('supabase/migrations/20260926152345_20260903_step4_zzzzzzzzzz_public_apply_resume.sql','utf8');
 const route=fs.readFileSync('app/api/public/apply/route.js','utf8');
 const form=fs.readFileSync('app/components/PublicApplyForm.js','utf8');
 

@@ -16,8 +16,8 @@ for(const file of jsFiles){
   if(result.status!==0)process.exit(result.status||1);
 }
 
-const core=fs.readFileSync('supabase/migrations/20260929_step8_automation_manager_core.sql','utf8');
-const rpcs=fs.readFileSync('supabase/migrations/20260929_step8_automation_manager_rpcs.sql','utf8');
+const core=fs.readFileSync('supabase/migrations/20260926153517_20260929_step8_automation_manager_core.sql','utf8');
+const rpcs=fs.readFileSync('supabase/migrations/20260926153522_20260929_step8_automation_manager_rpcs.sql','utf8');
 for(const [tag,count] of [
   ['$$',(rpcs.match(/\$\$/g)||[]).length],
   ['$alert$',(rpcs.match(/\$alert\$/g)||[]).length],

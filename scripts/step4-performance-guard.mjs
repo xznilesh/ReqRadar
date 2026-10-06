@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const read=(p)=>fs.readFileSync(p,'utf8');
-const hardening=read('supabase/migrations/20260903_step4_closeout_hardening.sql');
-const core=read('supabase/migrations/20260903_step4_enterprise_ats_core.sql');
+const hardening=read('supabase/migrations/20260926152220_20260903_step4_closeout_hardening.sql');
+const core=read('supabase/migrations/20260926152056_20260903_step4_enterprise_ats_core.sql');
 const candidates=read('app/candidates/page.js');
 const jobs=read('app/jobs/page.js');
 for(const token of ['least(coalesce(p_limit,50),100)','limit v_limit offset v_offset','idx_xzrecruiter_candidates_country_availability','idx_xzrecruiter_candidates_workplace','idx_xzrecruiter_jobs_country_status','idx_xzrecruiter_jobs_pipeline'])assert.ok(hardening.includes(token),`Missing bounded-query/index guard: ${token}`);

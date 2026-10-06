@@ -1,17 +1,17 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const core=fs.readFileSync('supabase/migrations/20260927_step4_candidate_intelligence_core.sql','utf8');
-const a=fs.readFileSync('supabase/migrations/20260927_step4_candidate_intelligence_rpcs_a.sql','utf8');
-const b=fs.readFileSync('supabase/migrations/20260927_step4_candidate_intelligence_rpcs_b.sql','utf8');
-const stale=fs.readFileSync('supabase/migrations/20260927_step4_candidate_intelligence_stale_guards.sql','utf8');
+const core=fs.readFileSync('supabase/migrations/20260926152601_20260927_step4_candidate_intelligence_core.sql','utf8');
+const a=fs.readFileSync('supabase/migrations/20260926152606_20260927_step4_candidate_intelligence_rpcs_a.sql','utf8');
+const b=fs.readFileSync('supabase/migrations/20260926153440_20260927_step4_candidate_intelligence_rpcs_b.sql','utf8');
+const stale=fs.readFileSync('supabase/migrations/20260926153444_20260927_step4_candidate_intelligence_stale_guards.sql','utf8');
 const migrationFiles=fs.readdirSync('supabase/migrations').sort();
-const step3Index=migrationFiles.indexOf('20260926_step3_recruiter_execution_workspace.sql');
+const step3Index=migrationFiles.indexOf('20260926152551_20260926_step3_recruiter_execution_workspace.sql');
 for(const name of [
-  '20260927_step4_candidate_intelligence_core.sql',
-  '20260927_step4_candidate_intelligence_rpcs_a.sql',
-  '20260927_step4_candidate_intelligence_rpcs_b.sql',
-  '20260927_step4_candidate_intelligence_stale_guards.sql'
+  '20260926152601_20260927_step4_candidate_intelligence_core.sql',
+  '20260926152606_20260927_step4_candidate_intelligence_rpcs_a.sql',
+  '20260926153440_20260927_step4_candidate_intelligence_rpcs_b.sql',
+  '20260926153444_20260927_step4_candidate_intelligence_stale_guards.sql'
 ]){
   assert.ok(step3Index>=0&&migrationFiles.indexOf(name)>step3Index,'Step-4 migration must sort after completed Step-3 migration: '+name);
 }

@@ -57,4 +57,21 @@ where table_schema='public' and table_name in ('audit_events','security_events')
 `)||0);
 if(immutable!==0)throw new Error('mutable_audit_security_events='+immutable);
 
-console.log('STEP7_LIVE_DB_PASS tenant_rls=true direct_grants=0 security_invoker_views=true public_definers=0 audit_immutable=true');
+const unsafeAnonDefiners=Number(query(`
+select count(*)
+from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+where n.nspname='public' and p.prosecdef
+  and has_function_privilege('anon',p.oid,'EXECUTE')
+  and pg_get_function_identity_arguments(p.oid) !~* '(token|slug|email|upload)';
+`)||0);
+if(unsafeAnonDefiners!==0)throw new Error('anon_security_definer_without_capability_argument='+unsafeAnonDefiners);
+
+const mutablePrivateSearchPath=Number(query(`
+select count(*)
+from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+where n.nspname='private' and p.proname in ('xzrecruiter_can_write','xzrecruiter_can_screen')
+  and not coalesce(p.proconfig,'{}'::text[]) @> array['search_path=pg_catalog'];
+`)||0);
+if(mutablePrivateSearchPath!==0)throw new Error('private_helpers_without_fixed_search_path='+mutablePrivateSearchPath);
+
+console.log('STEP7_LIVE_DB_PASS tenant_rls=true direct_grants=0 security_invoker_views=true public_definers=0 audit_immutable=true anon_definers_capability_guarded=true private_search_path_fixed=true');

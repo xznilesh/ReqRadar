@@ -17,7 +17,7 @@ must('app/components/CrmWorkspace.js',['Server-side search','saveSavedView','OPP
 must('app/components/CrmCustomFieldsPanel.js',['Workspace-defined business data','saveCustomValues','MULTI_SELECT','SINGLE_SELECT']);
 must('app/components/AppShell.js',['/clients','/contacts','/opportunities','/business/pipeline','/vendors','/tasks']);
 must('app/components/CommandPalette.js',['Open Clients & Accounts','Open Opportunities','Open Business Pipeline']);
-must('supabase/migrations/20260903_step5_recruitment_crm_core.sql',['crm_opportunities','crm_tasks','recruitment_client_contracts','crm_custom_field_values']);
-must('supabase/migrations/20260903_step5_recruitment_crm_rpcs.sql',['xzrecruiter_client_360','xzrecruiter_contact_360','xzrecruiter_opportunity_360','xzrecruiter_save_crm_custom_values']);
+must('supabase/migrations/20260926152427_20260903_step5_recruitment_crm_core.sql',['crm_opportunities','crm_tasks','recruitment_client_contracts','crm_custom_field_values']);
+must('supabase/migrations/20260926152438_20260903_step5_recruitment_crm_rpcs.sql',['xzrecruiter_client_360','xzrecruiter_contact_360','xzrecruiter_opportunity_360','xzrecruiter_save_crm_custom_values']);
 
 console.log(`Step 5 CRM regression checks passed (${checks.length} assertions).`);

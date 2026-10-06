@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { performance } from 'node:perf_hooks';
-const rpc=fs.readFileSync('supabase/migrations/20260903_step5_recruitment_crm_rpcs.sql','utf8');
-const core=fs.readFileSync('supabase/migrations/20260903_step5_recruitment_crm_core.sql','utf8');
+const rpc=fs.readFileSync('supabase/migrations/20260926152438_20260903_step5_recruitment_crm_rpcs.sql','utf8');
+const core=fs.readFileSync('supabase/migrations/20260926152427_20260903_step5_recruitment_crm_core.sql','utf8');
 const workspace=fs.readFileSync('app/components/CrmWorkspace.js','utf8');
 const requiredIndexes=['idx_xzr_clients_search','idx_xzr_clients_owner','idx_xzr_clients_country','idx_xzr_contacts_search','idx_xzr_contacts_email','idx_xzr_opportunities_stage','idx_xzr_opportunities_owner','idx_xzr_activities_client','idx_xzr_tasks_due','idx_xzr_contracts_client'];
 for(const index of requiredIndexes)if(!core.includes(index))throw new Error(`Missing CRM operational index ${index}`);

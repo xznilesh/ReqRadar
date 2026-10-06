@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const ats=fs.readFileSync('supabase/migrations/20260903_step4_enterprise_ats_rpcs.sql','utf8');
-const step5=fs.readFileSync('supabase/migrations/20260925_step5_ai_assisted_human_screening.sql','utf8');
-const step6core=fs.readFileSync('supabase/migrations/20260925_step6_submission_pack_core.sql','utf8');
-const step6=fs.readFileSync('supabase/migrations/20260925_step6_submission_pack_rpcs.sql','utf8');
-const step7=fs.readFileSync('supabase/migrations/20260928_step7_enterprise_multitenant_security_foundation.sql','utf8');
+const ats=fs.readFileSync('supabase/migrations/20260926152125_20260903_step4_enterprise_ats_rpcs.sql','utf8');
+const step5=fs.readFileSync('supabase/migrations/20260926153449_20260925_step5_ai_assisted_human_screening.sql','utf8');
+const step6core=fs.readFileSync('supabase/migrations/20260926153500_20260925_step6_submission_pack_core.sql','utf8');
+const step6=fs.readFileSync('supabase/migrations/20260926153505_20260925_step6_submission_pack_rpcs.sql','utf8');
+const step7=fs.readFileSync('supabase/migrations/20260926153512_20260928_step7_enterprise_multitenant_security_foundation.sql','utf8');
 
 assert.ok(ats.includes("possible_duplicate")&&ats.includes("exception when unique_violation"),'candidate creation must prevent duplicate records on retry/race');
 assert.ok(ats.includes("and ((v_email is not null and lower(email)=v_email) or (v_phone is not null and phone=v_phone))"),'candidate duplicate check must be same-tenant identity based');

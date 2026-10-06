@@ -8,10 +8,10 @@ const read=(p)=>fs.readFileSync(path.join(root,p),'utf8');
 const importSource=async(p)=>import(`data:text/javascript;base64,${Buffer.from(read(p)).toString('base64')}`);
 const csv=await importSource('lib/csv.js');
 const fixtures=JSON.parse(read('tests/fixtures/step3-agencies.json'));
-const core=read('supabase/migrations/20260903_step3_agency_onboarding_core.sql');
-const rpcs=read('supabase/migrations/20260903_step3_agency_onboarding_rpcs.sql');
-const imports=read('supabase/migrations/20260903_step3_safe_import_foundation.sql');
-const advanced=read('supabase/migrations/20260903_step3_advanced_configuration_foundations.sql');
+const core=read('supabase/migrations/20260926151909_20260903_step3_agency_onboarding_core.sql');
+const rpcs=read('supabase/migrations/20260926151915_20260903_step3_agency_onboarding_rpcs.sql');
+const imports=read('supabase/migrations/20260926151920_20260903_step3_safe_import_foundation.sql');
+const advanced=read('supabase/migrations/20260926151927_20260903_step3_advanced_configuration_foundations.sql');
 const wizard=read('app/components/OnboardingWizard.js');
 const settings=read('app/components/SettingsCenter.js');
 const dashboard=read('app/dashboard/page.js');
@@ -25,13 +25,13 @@ const importApi=read('app/api/import/route.js');
 const auth=read('lib/auth.js');
 const signup=read('app/api/auth/signup/route.js');
 const logo=read('public/xzrecruiter-logo.svg');
-const step2=read('supabase/migrations/20260903_step2_global_operating_foundation.sql');
+const step2=read('supabase/migrations/20260926151850_20260903_step2_global_operating_foundation.sql');
 
 for(const p of [
-  'supabase/migrations/20260903_step1_foundation_security_branding.sql',
-  'supabase/migrations/20260903_step1_workspace_session_binding.sql',
-  'supabase/migrations/20260903_step2_global_operating_foundation.sql',
-  'supabase/migrations/20260903_step2_global_integrity_hardening.sql',
+  'supabase/migrations/20260926151841_20260903_step1_foundation_security_branding.sql',
+  'supabase/migrations/20260926151845_20260903_step1_workspace_session_binding.sql',
+  'supabase/migrations/20260926151850_20260903_step2_global_operating_foundation.sql',
+  'supabase/migrations/20260926151859_20260903_step2_global_integrity_hardening.sql',
   'app/components/AppShell.js','app/components/EnterpriseTable.js','app/components/FormControls.js','lib/globalization.js'
 ]) assert.ok(fs.existsSync(path.join(root,p)),`Missing inherited source: ${p}`);
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
-const sql=await readFile(new URL('../supabase/migrations/20260925_step6_submission_pack_rpcs.sql',import.meta.url),'utf8');
-const core=await readFile(new URL('../supabase/migrations/20260925_step6_submission_pack_core.sql',import.meta.url),'utf8');
+const sql=await readFile(new URL('../supabase/migrations/20260926153505_20260925_step6_submission_pack_rpcs.sql',import.meta.url),'utf8');
+const core=await readFile(new URL('../supabase/migrations/20260926153500_20260925_step6_submission_pack_core.sql',import.meta.url),'utf8');
 const contracts=[
   ['qualified gate',"v_candidacy<>'QUALIFIED'"],['screening gate',"'SCREENING_INCOMPLETE'"],['interest gate',"'CANDIDATE_INTEREST_NOT_CONFIRMED'"],
   ['current intelligence',"'CURRENT_CANDIDATE_INTELLIGENCE_REQUIRED'"],['resume required',"'PRIMARY_RESUME_REQUIRED'"],['hard requirement',"'APPROVED_HARD_REQUIREMENT_FAILED'"],

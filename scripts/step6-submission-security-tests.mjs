@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
 import {buildClientFacingSubmission,buildSubmissionPack,clientContentLeaksInternalData} from '../lib/submission-pack.mjs';
-const sql=await readFile(new URL('../supabase/migrations/20260925_step6_submission_pack_rpcs.sql',import.meta.url),'utf8');
+const sql=await readFile(new URL('../supabase/migrations/20260926153505_20260925_step6_submission_pack_rpcs.sql',import.meta.url),'utf8');
 const route=await readFile(new URL('../app/api/submissions/route.js',import.meta.url),'utf8');
 for(const guard of ['submission_access_forbidden','recruiter_only','am_only','client_submit_forbidden','duplicate_client_submission','stale_approval_blocked','stale_client_submission_blocked'])assert.ok(sql.includes(guard),guard);
 assert.ok(sql.includes("step6_quality_gate_endpoint_required")&&sql.includes("step6_client_submit_endpoint_required"),'legacy bypass not closed');

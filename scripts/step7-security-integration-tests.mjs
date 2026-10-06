@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { ROLE_PERMISSIONS } from '../lib/security-policy.mjs';
 
-const sql=fs.readFileSync('supabase/migrations/20260928_step7_enterprise_multitenant_security_foundation.sql','utf8');
+const sql=fs.readFileSync('supabase/migrations/20260926153512_20260928_step7_enterprise_multitenant_security_foundation.sql','utf8');
 
 for(const token of [
   'u.disabled_at is null','am.active=true','s.revoked_at is null','s.expires_at>now()',

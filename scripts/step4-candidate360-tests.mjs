@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const migration=fs.readFileSync('supabase/migrations/20260903_step4_zzzzzzzzzzz_candidate_profile_merge.sql','utf8');
+const migration=fs.readFileSync('supabase/migrations/20260926152350_20260903_step4_zzzzzzzzzzz_candidate_profile_merge.sql','utf8');
 const editor=fs.readFileSync('app/components/CandidateProfileEditor.js','utf8');
 const drawer=fs.readFileSync('app/components/CandidateCloseoutDrawer.js','utf8');
 const page=fs.readFileSync('app/candidates/[id]/page.js','utf8');

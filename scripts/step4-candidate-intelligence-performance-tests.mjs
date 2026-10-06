@@ -3,8 +3,8 @@ import fs from 'node:fs';
 import { performance } from 'node:perf_hooks';
 import { buildCandidateProfileSnapshot,computeCandidateMatch,evaluateDuplicatePair } from '../lib/candidate-intelligence.mjs';
 
-const core=fs.readFileSync('supabase/migrations/20260927_step4_candidate_intelligence_core.sql','utf8');
-const b=fs.readFileSync('supabase/migrations/20260927_step4_candidate_intelligence_rpcs_b.sql','utf8');
+const core=fs.readFileSync('supabase/migrations/20260926152601_20260927_step4_candidate_intelligence_core.sql','utf8');
+const b=fs.readFileSync('supabase/migrations/20260926153440_20260927_step4_candidate_intelligence_rpcs_b.sql','utf8');
 
 for(const index of [
   'idx_xzr_candidate_profile_skills_lookup','idx_xzr_candidate_profile_skills_candidate',

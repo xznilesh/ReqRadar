@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const migrationPath='supabase/migrations/20260926_step3_recruiter_execution_workspace.sql';
+const migrationPath='supabase/migrations/20260926152551_20260926_step3_recruiter_execution_workspace.sql';
 const sql=fs.readFileSync(migrationPath,'utf8');
 assert.equal(fs.existsSync('supabase/migrations/20260925_step3_recruiter_execution_workspace.sql'),false,'duplicate Step-3 migration must not exist');
 assert.equal((sql.match(/as \$fn\$/g)||[]).length,(sql.match(/\$fn\$;/g)||[]).length,'unbalanced SQL function dollar quotes');

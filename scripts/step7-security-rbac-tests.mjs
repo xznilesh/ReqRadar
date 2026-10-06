@@ -20,7 +20,7 @@ assert.equal(permissionForDocument({documentType:'RESUME',classification:'HIGHLY
 assert.equal(permissionForDocument({documentType:'PASSPORT',classification:'HIGHLY_SENSITIVE'}),'document:sensitive_view');
 assert.ok(Object.values(DATA_CLASSIFICATION).includes('HIGHLY_SENSITIVE'));
 
-const sql=fs.readFileSync('supabase/migrations/20260928_step7_enterprise_multitenant_security_foundation.sql','utf8');
+const sql=fs.readFileSync('supabase/migrations/20260926153512_20260928_step7_enterprise_multitenant_security_foundation.sql','utf8');
 const pairs=[
   ['RECRUITMENT_MANAGER','candidate:screen'],
   ['RECRUITMENT_MANAGER','requirement:assign'],

@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import {performance} from 'node:perf_hooks';
 import {hasPermission} from '../lib/security-policy.mjs';
 
-const s=fs.readFileSync('supabase/migrations/20260928_step7_enterprise_multitenant_security_foundation.sql','utf8');
+const s=fs.readFileSync('supabase/migrations/20260926153512_20260928_step7_enterprise_multitenant_security_foundation.sql','utf8');
 for(const token of [
   'idx_xzr_memberships_active_user',
   'idx_xzr_sessions_active_workspace',

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 const exists=p=>{if(!fs.existsSync(p))throw new Error(`missing ${p}`);return fs.readFileSync(p,'utf8')};
-const portalSql=exists('supabase/migrations/20260903_step5_client_vendor_portals.sql');
-const vendorResume=exists('supabase/migrations/20260903_step5_vendor_private_resume.sql');
+const portalSql=exists('supabase/migrations/20260926152448_20260903_step5_client_vendor_portals.sql');
+const vendorResume=exists('supabase/migrations/20260926152454_20260903_step5_vendor_private_resume.sql');
 const files=[
  'app/components/ClientPortalWorkspace.js','app/components/VendorPortalWorkspace.js','app/components/PortalManager.js',
  'app/api/public/client-portal/feedback/route.js','app/api/public/vendor-portal/submit/route.js'

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const migration=fs.readFileSync('supabase/migrations/20260925_step1_workflow_contract_lock.sql','utf8');
+const migration=fs.readFileSync('supabase/migrations/20260926152509_20260925_step1_workflow_contract_lock.sql','utf8');
 const ats=fs.readFileSync('lib/ats.js','utf8');
 const drawer=fs.readFileSync('app/components/ApplicationScreeningDrawer.js','utf8');
 

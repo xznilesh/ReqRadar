@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { evaluateRequirementHealth,nextOperationalActions,targetState } from '../lib/manager-control.mjs';
 
-const core=fs.readFileSync('supabase/migrations/20260929_step8_automation_manager_core.sql','utf8');
-const sql=fs.readFileSync('supabase/migrations/20260929_step8_automation_manager_rpcs.sql','utf8');
+const core=fs.readFileSync('supabase/migrations/20260926153517_20260929_step8_automation_manager_core.sql','utf8');
+const sql=fs.readFileSync('supabase/migrations/20260926153522_20260929_step8_automation_manager_rpcs.sql','utf8');
 const contracts=core+'\n'+sql;
 const manager=fs.readFileSync('app/components/ManagerControlCenter.js','utf8');
 const req=fs.readFileSync('app/components/ManagerRequirementControl.js','utf8');

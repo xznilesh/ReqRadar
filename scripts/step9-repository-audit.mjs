@@ -6,14 +6,14 @@ const strict=process.argv.includes('--release');
 function walk(dir){return fs.existsSync(dir)?fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>{const p=path.join(dir,e.name);return e.isDirectory()?walk(p):[p]}):[]}
 const required=[
  'docs/step1-workflow-contract.md',
- 'supabase/migrations/20260925_step1_workflow_contract_lock.sql',
- 'supabase/migrations/20260925_step2_ai_jd_brain.sql',
- 'supabase/migrations/20260926_step3_recruiter_execution_workspace.sql',
- 'supabase/migrations/20260927_step4_candidate_intelligence_core.sql',
- 'supabase/migrations/20260925_step5_ai_assisted_human_screening.sql',
- 'supabase/migrations/20260925_step6_submission_pack_core.sql',
- 'supabase/migrations/20260928_step7_enterprise_multitenant_security_foundation.sql',
- 'supabase/migrations/20260929_step8_automation_manager_core.sql',
+ 'supabase/migrations/20260926152509_20260925_step1_workflow_contract_lock.sql',
+ 'supabase/migrations/20260926152514_20260925_step2_ai_jd_brain.sql',
+ 'supabase/migrations/20260926152551_20260926_step3_recruiter_execution_workspace.sql',
+ 'supabase/migrations/20260926152601_20260927_step4_candidate_intelligence_core.sql',
+ 'supabase/migrations/20260926153449_20260925_step5_ai_assisted_human_screening.sql',
+ 'supabase/migrations/20260926153500_20260925_step6_submission_pack_core.sql',
+ 'supabase/migrations/20260926153512_20260928_step7_enterprise_multitenant_security_foundation.sql',
+ 'supabase/migrations/20260926153517_20260929_step8_automation_manager_core.sql',
  'app/api/health/ready/route.js','app/api/requirements/jd/route.js','app/api/candidate-intelligence/route.js',
  'app/api/submissions/route.js','app/api/automation/run/route.js','app/api/manager-control/route.js',
  'tests/fixtures/jd-regression.json','tests/fixtures/candidate-intelligence-regression.json','tests/fixtures/step5-screening.json','tests/fixtures/submission-pack-regression.json'

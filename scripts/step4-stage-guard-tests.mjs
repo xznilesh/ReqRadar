@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const sql=fs.readFileSync('supabase/migrations/20260903_step4_zzzzzzzzz_stage_transition_guard.sql','utf8');
+const sql=fs.readFileSync('supabase/migrations/20260926152340_20260903_step4_zzzzzzzzz_stage_transition_guard.sql','utf8');
 const pipeline=fs.readFileSync('app/components/PipelineWorkspace.js','utf8');
 const api=fs.readFileSync('app/api/ats/route.js','utf8');
 const layout=fs.readFileSync('app/layout.js','utf8');

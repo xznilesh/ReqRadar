@@ -4,7 +4,7 @@ import { detectPromptInjectionSignals } from '../lib/jd-contract.mjs';
 import { enforceAiSafetyContracts } from '../lib/jd-ai.mjs';
 import { mockOutputForFixture } from './jd-test-helpers.mjs';
 
-const sql=fs.readFileSync('supabase/migrations/20260925_step2_ai_jd_brain.sql','utf8');
+const sql=fs.readFileSync('supabase/migrations/20260926152514_20260925_step2_ai_jd_brain.sql','utf8');
 const api=fs.readFileSync('app/api/requirements/jd/route.js','utf8');
 const upload=fs.readFileSync('app/api/requirements/jd/upload/route.js','utf8');
 const documentRoute=fs.readFileSync('app/api/requirements/jd/document/route.js','utf8');
