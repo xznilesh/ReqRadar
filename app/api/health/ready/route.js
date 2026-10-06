@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { rpc, supabaseConfigured } from '@/lib/supabase-api';
 import { storageConfigured } from '@/lib/server-storage';
 import { malwareScannerConfigured } from '@/lib/malware-scan';
+import { telemetryError, telemetryWarn } from '@/lib/telemetry';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -20,9 +21,9 @@ export async function GET() {
   const started = Date.now();
   const dependencies = dependencyState();
   if (Object.values(dependencies).some((ready) => ready !== true)) {
-    console.error('readiness_dependency_blocked', JSON.stringify(
-      Object.fromEntries(Object.entries(dependencies).filter(([,ready]) => !ready).map(([name]) => [name, 'not_ready']))
-    ));
+    telemetryWarn('readiness_dependency_blocked',{
+      dependency:Object.entries(dependencies).filter(([,ready])=>!ready).map(([name])=>name).join(',')
+    });
     return NextResponse.json({
       ok: false,
       service: 'xzrecruiter',
@@ -44,7 +45,7 @@ export async function GET() {
       version: '1.0.0'
     });
   } catch (error) {
-    console.error('readiness_failed', error?.status || '', error?.message || '');
+    telemetryError('readiness_database_failed',error,{status_code:error?.status||503,dependency:'database'});
     return NextResponse.json({
       ok: false,
       service: 'xzrecruiter',
