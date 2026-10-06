@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { rpc } from '@/lib/supabase-api';
 import { setSession } from '@/lib/auth';
 import { consumeRateLimit,rateLimitIdentityForRequest } from '@/lib/rate-limit';
-import { mutationRequestIsTrusted,declaredBodyWithin } from '@/lib/request-security';
+import { mutationRequestIsTrusted,declaredBodyWithin } from '@/lib/request-security';\nimport { attachDeviceMetadataToSession } from '@/lib/session-device';
 
 const errors={
   email_unverified:['Verify your work email before opening the dashboard.',403],
@@ -34,6 +34,12 @@ export async function POST(req){
       const code=result?.error||'invalid_credentials';
       const [message,status]=errors[code]||errors.invalid_credentials;
       return NextResponse.json({error:message,code},{status});
+    }
+    try{
+      await attachDeviceMetadataToSession({token:result.token,request:req});
+    }catch(deviceError){
+      await rpc('xzrecruiter_logout',{p_token:result.token}).catch(()=>null);
+      throw deviceError;
     }
     await setSession(result.token);
     return NextResponse.json({ok:true});
