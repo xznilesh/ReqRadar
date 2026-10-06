@@ -98,7 +98,10 @@
     "test:step9": "npm run test:step9:audit && npm run test:step9:unit && npm run test:step9:integration && npm run test:step9:e2e && npm run test:step9:security && npm run test:step9:ai && npm run test:step9:performance && npm run test:step9:responsive",
     "test:step9:live-db": "node scripts/step9-live-db.mjs",
     "test:step9:release": "node scripts/step9-release-gate.mjs",
-    "test:ui:browser": "node scripts/ui-browser-tests.mjs"
+    "test:ui:browser": "node scripts/ui-browser-tests.mjs",
+    "test:step9:migration-reconcile": "node scripts/step9-migration-reconcile-report.mjs",
+    "test:step9:browser-live": "node scripts/enterprise-browser-e2e.mjs",
+    "test:step9:load-live": "node scripts/step9-postgres-load.mjs"
   },
   "dependencies": {
     "@radix-ui/react-scroll-area": "1.2.18",
