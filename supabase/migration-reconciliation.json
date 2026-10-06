@@ -1,0 +1,335 @@
+{
+  "schema_version": 1,
+  "project_ref": "iyqucjzqpetddakemlqa",
+  "captured_at": "2026-09-26T16:46:28Z",
+  "strategy": "legacy_duplicate_filename_prefixes_reconciled_by_remote_migration_name",
+  "note": "Production was reconstructed through Supabase MCP, which assigned unique remote versions while preserving each repository migration stem as the remote migration name. Bootstrap migrations are intentional prerequisites and may exist only in remote history.",
+  "local_migration_count": 48,
+  "remote_migration_count": 58,
+  "required_local_names": [
+    "20260903_step1_foundation_security_branding",
+    "20260903_step1_workspace_session_binding",
+    "20260903_step2_global_integrity_hardening",
+    "20260903_step2_global_operating_foundation",
+    "20260903_step3_advanced_configuration_foundations",
+    "20260903_step3_agency_onboarding_core",
+    "20260903_step3_agency_onboarding_rpcs",
+    "20260903_step3_operating_configuration_rpcs",
+    "20260903_step3_safe_import_foundation",
+    "20260903_step4_closeout_hardening",
+    "20260903_step4_closeout_portal_snapshot",
+    "20260903_step4_closeout_scorecard_studio",
+    "20260903_step4_closeout_views_documents_privacy",
+    "20260903_step4_enterprise_ats_core",
+    "20260903_step4_enterprise_ats_rpcs",
+    "20260903_step4_legacy_constraint_compatibility",
+    "20260903_step4_z_dashboard_metrics",
+    "20260903_step4_zz_full_closeout",
+    "20260903_step4_zzz_candidate_360_context",
+    "20260903_step4_zzzz_bulk_job_compat",
+    "20260903_step4_zzzzz_private_attachments",
+    "20260903_step4_zzzzzz_interview_timezone",
+    "20260903_step4_zzzzzzz_notes",
+    "20260903_step4_zzzzzzzz_submission_resume",
+    "20260903_step4_zzzzzzzzz_stage_transition_guard",
+    "20260903_step4_zzzzzzzzzz_public_apply_resume",
+    "20260903_step4_zzzzzzzzzzz_candidate_profile_merge",
+    "20260903_step4_zzzzzzzzzzzz_job_profile_screening",
+    "20260903_step5_client_vendor_portals",
+    "20260903_step5_crm_pipeline_context",
+    "20260903_step5_recruitment_crm_core",
+    "20260903_step5_recruitment_crm_rpcs",
+    "20260903_step5_tenant_integrity_hardening",
+    "20260903_step5_vendor_private_resume",
+    "20260925_step1_workflow_contract_lock",
+    "20260925_step2_ai_jd_brain",
+    "20260925_step5_ai_assisted_human_screening",
+    "20260925_step6_submission_pack_core",
+    "20260925_step6_submission_pack_rpcs",
+    "20260926154500_step9_public_health",
+    "20260926_step3_recruiter_execution_workspace",
+    "20260927_step4_candidate_intelligence_core",
+    "20260927_step4_candidate_intelligence_rpcs_a",
+    "20260927_step4_candidate_intelligence_rpcs_b",
+    "20260927_step4_candidate_intelligence_stale_guards",
+    "20260928_step7_enterprise_multitenant_security_foundation",
+    "20260929_step8_automation_manager_core",
+    "20260929_step8_automation_manager_rpcs"
+  ],
+  "remote_bootstrap_migrations": [
+    {
+      "version": "20260926151831",
+      "name": "step9_bootstrap_legacy_base_schema"
+    },
+    {
+      "version": "20260926151959",
+      "name": "step9_bootstrap_offer_placement_legacy_tables"
+    },
+    {
+      "version": "20260926152024",
+      "name": "step9_bootstrap_job_owner_legacy_column"
+    },
+    {
+      "version": "20260926152048",
+      "name": "step9_bootstrap_interview_feedback_legacy_table"
+    },
+    {
+      "version": "20260926152115",
+      "name": "step9_bootstrap_job_legacy_detail_columns"
+    },
+    {
+      "version": "20260926152141",
+      "name": "step9_bootstrap_interview_type_legacy_column"
+    },
+    {
+      "version": "20260926152158",
+      "name": "step9_bootstrap_legacy_constraint_columns"
+    },
+    {
+      "version": "20260926152322",
+      "name": "step9_bootstrap_recruiter_notes_legacy_table"
+    },
+    {
+      "version": "20260926152420",
+      "name": "step9_bootstrap_client_owner_legacy_column"
+    },
+    {
+      "version": "20260926152540",
+      "name": "step9_bootstrap_application_owner_legacy_column"
+    }
+  ],
+  "remote_migrations": [
+    {
+      "version": "20260926151831",
+      "name": "step9_bootstrap_legacy_base_schema"
+    },
+    {
+      "version": "20260926151841",
+      "name": "20260903_step1_foundation_security_branding"
+    },
+    {
+      "version": "20260926151845",
+      "name": "20260903_step1_workspace_session_binding"
+    },
+    {
+      "version": "20260926151850",
+      "name": "20260903_step2_global_operating_foundation"
+    },
+    {
+      "version": "20260926151859",
+      "name": "20260903_step2_global_integrity_hardening"
+    },
+    {
+      "version": "20260926151909",
+      "name": "20260903_step3_agency_onboarding_core"
+    },
+    {
+      "version": "20260926151915",
+      "name": "20260903_step3_agency_onboarding_rpcs"
+    },
+    {
+      "version": "20260926151920",
+      "name": "20260903_step3_safe_import_foundation"
+    },
+    {
+      "version": "20260926151927",
+      "name": "20260903_step3_advanced_configuration_foundations"
+    },
+    {
+      "version": "20260926151933",
+      "name": "20260903_step3_operating_configuration_rpcs"
+    },
+    {
+      "version": "20260926151959",
+      "name": "step9_bootstrap_offer_placement_legacy_tables"
+    },
+    {
+      "version": "20260926152024",
+      "name": "step9_bootstrap_job_owner_legacy_column"
+    },
+    {
+      "version": "20260926152048",
+      "name": "step9_bootstrap_interview_feedback_legacy_table"
+    },
+    {
+      "version": "20260926152056",
+      "name": "20260903_step4_enterprise_ats_core"
+    },
+    {
+      "version": "20260926152115",
+      "name": "step9_bootstrap_job_legacy_detail_columns"
+    },
+    {
+      "version": "20260926152125",
+      "name": "20260903_step4_enterprise_ats_rpcs"
+    },
+    {
+      "version": "20260926152141",
+      "name": "step9_bootstrap_interview_type_legacy_column"
+    },
+    {
+      "version": "20260926152158",
+      "name": "step9_bootstrap_legacy_constraint_columns"
+    },
+    {
+      "version": "20260926152206",
+      "name": "20260903_step4_legacy_constraint_compatibility"
+    },
+    {
+      "version": "20260926152215",
+      "name": "20260903_step4_z_dashboard_metrics"
+    },
+    {
+      "version": "20260926152220",
+      "name": "20260903_step4_closeout_hardening"
+    },
+    {
+      "version": "20260926152224",
+      "name": "20260903_step4_closeout_views_documents_privacy"
+    },
+    {
+      "version": "20260926152228",
+      "name": "20260903_step4_closeout_portal_snapshot"
+    },
+    {
+      "version": "20260926152237",
+      "name": "20260903_step4_closeout_scorecard_studio"
+    },
+    {
+      "version": "20260926152241",
+      "name": "20260903_step4_zz_full_closeout"
+    },
+    {
+      "version": "20260926152245",
+      "name": "20260903_step4_zzz_candidate_360_context"
+    },
+    {
+      "version": "20260926152249",
+      "name": "20260903_step4_zzzz_bulk_job_compat"
+    },
+    {
+      "version": "20260926152254",
+      "name": "20260903_step4_zzzzz_private_attachments"
+    },
+    {
+      "version": "20260926152302",
+      "name": "20260903_step4_zzzzzz_interview_timezone"
+    },
+    {
+      "version": "20260926152322",
+      "name": "step9_bootstrap_recruiter_notes_legacy_table"
+    },
+    {
+      "version": "20260926152331",
+      "name": "20260903_step4_zzzzzzz_notes"
+    },
+    {
+      "version": "20260926152335",
+      "name": "20260903_step4_zzzzzzzz_submission_resume"
+    },
+    {
+      "version": "20260926152340",
+      "name": "20260903_step4_zzzzzzzzz_stage_transition_guard"
+    },
+    {
+      "version": "20260926152345",
+      "name": "20260903_step4_zzzzzzzzzz_public_apply_resume"
+    },
+    {
+      "version": "20260926152350",
+      "name": "20260903_step4_zzzzzzzzzzz_candidate_profile_merge"
+    },
+    {
+      "version": "20260926152402",
+      "name": "20260903_step4_zzzzzzzzzzzz_job_profile_screening"
+    },
+    {
+      "version": "20260926152420",
+      "name": "step9_bootstrap_client_owner_legacy_column"
+    },
+    {
+      "version": "20260926152427",
+      "name": "20260903_step5_recruitment_crm_core"
+    },
+    {
+      "version": "20260926152438",
+      "name": "20260903_step5_recruitment_crm_rpcs"
+    },
+    {
+      "version": "20260926152444",
+      "name": "20260903_step5_crm_pipeline_context"
+    },
+    {
+      "version": "20260926152448",
+      "name": "20260903_step5_client_vendor_portals"
+    },
+    {
+      "version": "20260926152454",
+      "name": "20260903_step5_vendor_private_resume"
+    },
+    {
+      "version": "20260926152458",
+      "name": "20260903_step5_tenant_integrity_hardening"
+    },
+    {
+      "version": "20260926152509",
+      "name": "20260925_step1_workflow_contract_lock"
+    },
+    {
+      "version": "20260926152514",
+      "name": "20260925_step2_ai_jd_brain"
+    },
+    {
+      "version": "20260926152540",
+      "name": "step9_bootstrap_application_owner_legacy_column"
+    },
+    {
+      "version": "20260926152551",
+      "name": "20260926_step3_recruiter_execution_workspace"
+    },
+    {
+      "version": "20260926152601",
+      "name": "20260927_step4_candidate_intelligence_core"
+    },
+    {
+      "version": "20260926152606",
+      "name": "20260927_step4_candidate_intelligence_rpcs_a"
+    },
+    {
+      "version": "20260926153440",
+      "name": "20260927_step4_candidate_intelligence_rpcs_b"
+    },
+    {
+      "version": "20260926153444",
+      "name": "20260927_step4_candidate_intelligence_stale_guards"
+    },
+    {
+      "version": "20260926153449",
+      "name": "20260925_step5_ai_assisted_human_screening"
+    },
+    {
+      "version": "20260926153500",
+      "name": "20260925_step6_submission_pack_core"
+    },
+    {
+      "version": "20260926153505",
+      "name": "20260925_step6_submission_pack_rpcs"
+    },
+    {
+      "version": "20260926153512",
+      "name": "20260928_step7_enterprise_multitenant_security_foundation"
+    },
+    {
+      "version": "20260926153517",
+      "name": "20260929_step8_automation_manager_core"
+    },
+    {
+      "version": "20260926153522",
+      "name": "20260929_step8_automation_manager_rpcs"
+    },
+    {
+      "version": "20260926153805",
+      "name": "20260926154500_step9_public_health"
+    }
+  ]
+}

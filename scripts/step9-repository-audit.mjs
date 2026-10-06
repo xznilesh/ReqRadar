@@ -52,6 +52,18 @@ assert.ok(!Object.keys(pkg.scripts).some(k=>/step10/i.test(k)),'Step 10 must not
 
 console.log('STEP9_REPOSITORY_AUDIT source_files='+textFiles.length+' api_routes='+apiRoutes+' migrations='+migrations.length+' conflicts=0 secret_patterns=0');
 if(duplicateVersions.length){
- console.log('STEP9_AUDIT_P0 duplicate_migration_versions='+duplicateVersions.map(([v,a])=>v+':'+a.length).join(','));
- if(strict)process.exit(2);
+ const reconciliationPath='supabase/migration-reconciliation.json';
+ let reconciled=false;
+ try{
+  const reconciliation=JSON.parse(fs.readFileSync(reconciliationPath,'utf8'));
+  const localNames=migrations.map(x=>x.replace(/\.sql$/,'')).sort();
+  const required=[...(reconciliation.required_local_names||[])].sort();
+  reconciled=reconciliation.schema_version===1
+   && reconciliation.strategy==='legacy_duplicate_filename_prefixes_reconciled_by_remote_migration_name'
+   && JSON.stringify(required)===JSON.stringify(localNames)
+   && Number(reconciliation.local_migration_count)===localNames.length
+   && reconciliation.all_local_names_present_remote!==false;
+ }catch{}
+ console.log((reconciled?'STEP9_AUDIT_RECONCILED ':'STEP9_AUDIT_P0 ')+'duplicate_migration_versions='+duplicateVersions.map(([v,a])=>v+':'+a.length).join(','));
+ if(strict&&!reconciled)process.exit(2);
 }

@@ -10,9 +10,25 @@ function missing(name){if(!String(process.env[name]||'').trim())blockers.push('m
 
 run('node',['scripts/step9-repository-audit.mjs'],'repository_audit_failed');
 
-const migrations=fs.readdirSync('supabase/migrations').filter(x=>x.endsWith('.sql'));
+const migrations=fs.readdirSync('supabase/migrations').filter(x=>x.endsWith('.sql')).sort();
 const versions=migrations.map(x=>x.split('_')[0]);
-if(new Set(versions).size!==versions.length)blockers.push('duplicate_migration_versions');
+if(new Set(versions).size!==versions.length){
+ const reconciliationPath='supabase/migration-reconciliation.json';
+ try{
+  const reconciliation=JSON.parse(fs.readFileSync(reconciliationPath,'utf8'));
+  const localNames=migrations.map(x=>x.replace(/\.sql$/,'')).sort();
+  const required=[...(reconciliation.required_local_names||[])].sort();
+  const valid=reconciliation.schema_version===1
+   && reconciliation.strategy==='legacy_duplicate_filename_prefixes_reconciled_by_remote_migration_name'
+   && JSON.stringify(required)===JSON.stringify(localNames)
+   && Number(reconciliation.local_migration_count)===localNames.length
+   && reconciliation.all_local_names_present_remote!==false;
+  if(!valid)blockers.push('duplicate_migration_versions_unreconciled');
+  else console.log('STEP9_MIGRATION_RECONCILIATION_PASS local='+localNames.length+' remote_snapshot='+Number(reconciliation.remote_migration_count||0));
+ }catch{
+  blockers.push('duplicate_migration_versions_unreconciled');
+ }
+}
 
 const dbUrl=process.env.XZRECRUITER_DATABASE_URL||process.env.DATABASE_URL||'';
 if(!dbUrl||dbUrl.includes('placeholder'))blockers.push('verified_live_database_url_missing');

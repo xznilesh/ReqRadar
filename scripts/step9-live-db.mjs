@@ -19,12 +19,20 @@ function query(sql){
 function count(sql){return Number(query(sql)||0)}
 
 const migrations=fs.readdirSync('supabase/migrations').filter(x=>x.endsWith('.sql')).sort();
-const localVersions=migrations.map(x=>x.split('_')[0]);
-if(new Set(localVersions).size!==localVersions.length)throw new Error('local_migration_versions_not_unique');
-const remoteRaw=query("select version from supabase_migrations.schema_migrations order by version;");
-const remoteVersions=remoteRaw?remoteRaw.split(/\r?\n/).filter(Boolean):[];
-if(JSON.stringify(remoteVersions)!==JSON.stringify(localVersions)){
-  throw new Error('migration_history_drift local='+localVersions.length+' remote='+remoteVersions.length);
+const localNames=migrations.map(x=>x.replace(/\.sql$/,''));
+const reconciliationPath='supabase/migration-reconciliation.json';
+if(!fs.existsSync(reconciliationPath))throw new Error('migration_reconciliation_manifest_missing');
+const reconciliation=JSON.parse(fs.readFileSync(reconciliationPath,'utf8'));
+const requiredNames=[...(reconciliation.required_local_names||[])].sort();
+if(JSON.stringify(requiredNames)!==JSON.stringify([...localNames].sort())){
+  throw new Error('migration_reconciliation_manifest_drift');
+}
+const remoteRaw=query("select name from supabase_migrations.schema_migrations order by version;");
+const remoteNames=remoteRaw?remoteRaw.split(/\r?\n/).filter(Boolean):[];
+const remoteSet=new Set(remoteNames);
+const missingRemote=localNames.filter(name=>!remoteSet.has(name));
+if(missingRemote.length){
+  throw new Error('migration_history_drift missing_remote_names='+missingRemote.join(','));
 }
 
 const missingRls=count(`
@@ -69,7 +77,8 @@ if(duplicateLiveSubmissions)throw new Error('duplicate_live_submissions='+duplic
 const impossibleClientSubmit=count(`
 select count(*) from public.candidate_submissions s
 where s.workflow_status='CLIENT_SUBMITTED'
-and (s.status<>'SUBMITTED' or s.client_submitted_at is null or s.am_approved_at is null);`);
+and (s.status<>'SUBMITTED' or s.client_submitted_at is null
+  or s.am_review_status<>'APPROVED' or s.am_reviewed_at is null);`);
 if(impossibleClientSubmit)throw new Error('impossible_client_submission_state='+impossibleClientSubmit);
 
-console.log('STEP9_LIVE_DB_PASS migration_history=true rls=true direct_grants=0 health_rpc=true orphans=0 duplicate_live_submissions=0 impossible_states=0');
+console.log('STEP9_LIVE_DB_PASS migration_history=name_reconciled rls=true direct_grants=0 health_rpc=true orphans=0 duplicate_live_submissions=0 impossible_states=0');
