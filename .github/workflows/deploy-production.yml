@@ -17,23 +17,62 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+
       - run: npm ci --no-audit --no-fund
+      - run: npm sbom --sbom-format cyclonedx > sbom.cdx.json
       - run: npm run test:step9
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:ui:browser
+      - run: npm audit --omit=dev --audit-level=high
       - run: npm run build
         env:
           DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/postgres
 
+      - name: Migration collision hard stop
+        run: node scripts/step9-repository-audit.mjs --release
+
+      - name: Install browser and PostgreSQL client
+        run: |
+          npx playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - run: npm run test:ui:browser
+
+      - name: Enterprise browser golden path
+        run: node scripts/enterprise-browser-e2e.mjs
+        env:
+          XZRECRUITER_E2E_BASE_URL: ${{ vars.XZRECRUITER_E2E_BASE_URL }}
+          XZRECRUITER_E2E_EMAIL: ${{ secrets.XZRECRUITER_E2E_EMAIL }}
+          XZRECRUITER_E2E_PASSWORD: ${{ secrets.XZRECRUITER_E2E_PASSWORD }}
+          XZRECRUITER_E2E_JOB_ID: ${{ vars.XZRECRUITER_E2E_JOB_ID }}
+          XZRECRUITER_E2E_APPLICATION_ID: ${{ vars.XZRECRUITER_E2E_APPLICATION_ID }}
+          XZRECRUITER_E2E_CANDIDATE_NAME: ${{ vars.XZRECRUITER_E2E_CANDIDATE_NAME }}
+          XZRECRUITER_E2E_JOB_TITLE: ${{ vars.XZRECRUITER_E2E_JOB_TITLE }}
+
+      - name: PostgreSQL load certification
+        run: node scripts/step9-postgres-load.mjs
+        env:
+          XZRECRUITER_PERF_DATABASE_URL: ${{ secrets.XZRECRUITER_PERF_DATABASE_URL }}
+          XZRECRUITER_DATABASE_URL: ${{ secrets.XZRECRUITER_DATABASE_URL }}
+          XZRECRUITER_PERF_SIZES: 1000,10000,50000,100000
+          XZRECRUITER_PERF_REPETITIONS: 100
+          XZRECRUITER_PERF_P95_MS: ${{ vars.XZRECRUITER_PERF_P95_MS }}
+          XZRECRUITER_PERF_P99_MS: ${{ vars.XZRECRUITER_PERF_P99_MS }}
+
       - name: Hard release gate
         run: npm run test:step9:release
         env:
-          XZRECRUITER_RELEASE_BASE_URL: https://xzrecruiter.vercel.app
+          XZRECRUITER_RELEASE_BASE_URL: ${{ vars.XZRECRUITER_E2E_BASE_URL }}
           XZRECRUITER_DATABASE_URL: ${{ secrets.XZRECRUITER_DATABASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          XZRECRUITER_MALWARE_SCAN_URL: ${{ secrets.XZRECRUITER_MALWARE_SCAN_URL }}
           XZRECRUITER_BACKUP_RESTORE_EVIDENCE: ${{ vars.XZRECRUITER_BACKUP_RESTORE_EVIDENCE }}
-          XZRECRUITER_BROWSER_E2E_EVIDENCE: ${{ vars.XZRECRUITER_BROWSER_E2E_EVIDENCE }}
+          XZRECRUITER_BROWSER_E2E_EVIDENCE: github-actions:${{ github.run_id }}:enterprise-browser-e2e
+          XZRECRUITER_LOAD_TEST_EVIDENCE: github-actions:${{ github.run_id }}:postgres-load
+          XZRECRUITER_ENTERPRISE_AUTH_EVIDENCE: ${{ vars.XZRECRUITER_ENTERPRISE_AUTH_EVIDENCE }}
+          XZRECRUITER_PRIVACY_COMPLIANCE_EVIDENCE: ${{ vars.XZRECRUITER_PRIVACY_COMPLIANCE_EVIDENCE }}
+          XZRECRUITER_INTEGRATIONS_EVIDENCE: ${{ vars.XZRECRUITER_INTEGRATIONS_EVIDENCE }}
+          XZRECRUITER_OBSERVABILITY_EVIDENCE: ${{ vars.XZRECRUITER_OBSERVABILITY_EVIDENCE }}
           XZRECRUITER_PILOT_EVIDENCE: ${{ vars.XZRECRUITER_PILOT_EVIDENCE }}
 
       - name: Install Vercel CLI
@@ -61,3 +100,13 @@ jobs:
       - name: Readiness smoke
         run: |
           node -e "fetch('https://xzrecruiter.vercel.app/api/health/ready',{cache:'no-store'}).then(async r=>{const t=await r.text();console.log(r.status,t);if(r.status!==200)process.exit(1)})"
+
+      - name: Upload certification artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-certification-${{ github.run_id }}
+          path: |
+            sbom.cdx.json
+            test-results/**
+          if-no-files-found: warn
