@@ -50,7 +50,9 @@ jobs:
         run: npm run test:step9:release-source
 
       - name: Install browser and PostgreSQL client
+        id: diagnostic_tools
         if: always()
+        continue-on-error: true
         run: |
           npx playwright install --with-deps chromium
           sudo apt-get update
@@ -141,6 +143,7 @@ jobs:
             "${{ steps.dependency_audit.outcome }}" \
             "${{ steps.production_build.outcome }}" \
             "${{ steps.source_preflight.outcome }}" \
+            "${{ steps.diagnostic_tools.outcome }}" \
             "${{ steps.browser_regression.outcome }}" \
             "${{ steps.enterprise_browser.outcome }}" \
             "${{ steps.tenant_isolation.outcome }}" \
