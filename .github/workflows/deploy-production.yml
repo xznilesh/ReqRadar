@@ -4,9 +4,17 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: xzrecruiter-production
   cancel-in-progress: false
+
+env:
+  VERCEL_ORG_ID: team_bT56lx8ghZNKQb0mhkZ2T5tt
+  VERCEL_PROJECT_ID: prj_VtHZ6iRBJ7mqG3malUibM34euUsf
+  VERCEL_CLI_VERSION: ${{ vars.VERCEL_CLI_VERSION }}
 
 jobs:
   deploy:
@@ -14,17 +22,23 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
 
-      - run: npm ci --no-audit --no-fund
-      - run: npm sbom --sbom-format cyclonedx > sbom.cdx.json
-      - run: npm run test:step9
-      - run: npm audit --omit=dev --audit-level=high
-      - run: npm run build
-        env:
-          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/postgres
+      - name: Deterministic install
+        run: npm ci --no-audit --no-fund
+
+      - name: Generate CycloneDX SBOM
+        run: npm sbom --sbom-format cyclonedx > sbom.cdx.json
+
+      - name: Source QA and dependency gate
+        run: |
+          npm run test:step9
+          npm audit --omit=dev --audit-level=high
 
       - name: Migration collision hard stop
         run: node scripts/step9-repository-audit.mjs --release
@@ -35,21 +49,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client
 
-      - run: npm run test:ui:browser
+      - name: Existing browser regression suite
+        run: npm run test:ui:browser
 
-      - name: Enterprise browser golden path
-        run: node scripts/enterprise-browser-e2e.mjs
-        env:
-          XZRECRUITER_E2E_BASE_URL: ${{ vars.XZRECRUITER_E2E_BASE_URL }}
-          XZRECRUITER_E2E_EMAIL: ${{ secrets.XZRECRUITER_E2E_EMAIL }}
-          XZRECRUITER_E2E_PASSWORD: ${{ secrets.XZRECRUITER_E2E_PASSWORD }}
-          XZRECRUITER_E2E_JOB_ID: ${{ vars.XZRECRUITER_E2E_JOB_ID }}
-          XZRECRUITER_E2E_APPLICATION_ID: ${{ vars.XZRECRUITER_E2E_APPLICATION_ID }}
-          XZRECRUITER_E2E_CANDIDATE_NAME: ${{ vars.XZRECRUITER_E2E_CANDIDATE_NAME }}
-          XZRECRUITER_E2E_JOB_TITLE: ${{ vars.XZRECRUITER_E2E_JOB_TITLE }}
-
-      - name: PostgreSQL load certification
-        run: node scripts/step9-postgres-load.mjs
+      - name: Production-like PostgreSQL load certification
+        run: npm run test:step9:load-live
         env:
           XZRECRUITER_PERF_DATABASE_URL: ${{ secrets.XZRECRUITER_PERF_DATABASE_URL }}
           XZRECRUITER_DATABASE_URL: ${{ secrets.XZRECRUITER_DATABASE_URL }}
@@ -58,10 +62,65 @@ jobs:
           XZRECRUITER_PERF_P95_MS: ${{ vars.XZRECRUITER_PERF_P95_MS }}
           XZRECRUITER_PERF_P99_MS: ${{ vars.XZRECRUITER_PERF_P99_MS }}
 
-      - name: Hard release gate
+      - name: Install pinned Vercel CLI
+        run: npm install --global "vercel@${VERCEL_CLI_VERSION:?configure VERCEL_CLI_VERSION as a reviewed exact version}"
+
+      - name: Link Vercel project
+        run: |
+          mkdir -p .vercel
+          printf '%s\n' '{"orgId":"team_bT56lx8ghZNKQb0mhkZ2T5tt","projectId":"prj_VtHZ6iRBJ7mqG3malUibM34euUsf"}' > .vercel/project.json
+
+      - name: Pull production configuration
+        run: vercel pull --yes --environment=production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build exact production artifact
+        run: vercel build --prod
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Stage production artifact without domain assignment
+        id: stage
+        run: |
+          set -euo pipefail
+          deployment_url="$(vercel deploy --prebuilt --prod --skip-domain)"
+          DEPLOYMENT_URL="$deployment_url" node --input-type=module -e '
+            const value=process.env.DEPLOYMENT_URL;
+            const url=new URL(value);
+            if(url.protocol!=="https:"||url.origin!==value||!url.hostname.endsWith(".vercel.app"))process.exit(1);
+          '
+          printf 'url=%s\n' "$deployment_url" >> "$GITHUB_OUTPUT"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Staged readiness smoke
+        run: |
+          STAGED_URL="$STAGED_URL" node --input-type=module -e '
+            const base=process.env.STAGED_URL;
+            const r=await fetch(base+"/api/health/ready",{cache:"no-store"});
+            const body=await r.json().catch(()=>null);
+            console.log(r.status,body);
+            if(r.status!==200||body?.ok!==true||body?.database!=="ready")process.exit(1);
+          '
+        env:
+          STAGED_URL: ${{ steps.stage.outputs.url }}
+
+      - name: Enterprise browser golden path on exact staged build
+        run: npm run test:step9:browser-live
+        env:
+          XZRECRUITER_E2E_BASE_URL: ${{ steps.stage.outputs.url }}
+          XZRECRUITER_E2E_EMAIL: ${{ secrets.XZRECRUITER_E2E_EMAIL }}
+          XZRECRUITER_E2E_PASSWORD: ${{ secrets.XZRECRUITER_E2E_PASSWORD }}
+          XZRECRUITER_E2E_JOB_ID: ${{ vars.XZRECRUITER_E2E_JOB_ID }}
+          XZRECRUITER_E2E_APPLICATION_ID: ${{ vars.XZRECRUITER_E2E_APPLICATION_ID }}
+          XZRECRUITER_E2E_CANDIDATE_NAME: ${{ vars.XZRECRUITER_E2E_CANDIDATE_NAME }}
+          XZRECRUITER_E2E_JOB_TITLE: ${{ vars.XZRECRUITER_E2E_JOB_TITLE }}
+
+      - name: Hard enterprise release gate
         run: npm run test:step9:release
         env:
-          XZRECRUITER_RELEASE_BASE_URL: ${{ vars.XZRECRUITER_E2E_BASE_URL }}
+          XZRECRUITER_RELEASE_BASE_URL: ${{ steps.stage.outputs.url }}
           XZRECRUITER_DATABASE_URL: ${{ secrets.XZRECRUITER_DATABASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
@@ -75,31 +134,20 @@ jobs:
           XZRECRUITER_OBSERVABILITY_EVIDENCE: ${{ vars.XZRECRUITER_OBSERVABILITY_EVIDENCE }}
           XZRECRUITER_PILOT_EVIDENCE: ${{ vars.XZRECRUITER_PILOT_EVIDENCE }}
 
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
-      - name: Link Vercel project
-        run: |
-          mkdir -p .vercel
-          printf '%s\n' '{"orgId":"team_bT56lx8ghZNKQb0mhkZ2T5tt","projectId":"prj_VtHZ6iRBJ7mqG3malUibM34euUsf"}' > .vercel/project.json
-      - name: Pull production configuration
-        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+      - name: Promote exact certified deployment
+        run: vercel promote "$STAGED_URL"
         env:
+          STAGED_URL: ${{ steps.stage.outputs.url }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      - name: Build production artifact
-        run: vercel build --prod --token="$VERCEL_TOKEN"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      - name: Deploy production artifact
+
+      - name: Canonical production readiness smoke
         run: |
-          url="$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")"
-          echo "Production URL: $url"
-          echo "url=$url" >> "$GITHUB_OUTPUT"
-        id: deploy
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      - name: Readiness smoke
-        run: |
-          node -e "fetch('https://xzrecruiter.vercel.app/api/health/ready',{cache:'no-store'}).then(async r=>{const t=await r.text();console.log(r.status,t);if(r.status!==200)process.exit(1)})"
+          node --input-type=module -e '
+            const r=await fetch("https://xzrecruiter.vercel.app/api/health/ready",{cache:"no-store"});
+            const body=await r.json().catch(()=>null);
+            console.log(r.status,body);
+            if(r.status!==200||body?.ok!==true||body?.database!=="ready")process.exit(1);
+          '
 
       - name: Upload certification artifacts
         if: always()
