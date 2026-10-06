@@ -39,7 +39,9 @@ export async function GET(req){
     const generatedAt=new Date().toISOString();
     const payload={
       ok:true,
-      export_type:'DATA_SUBJECT_ACCESS',
+      export_type:'CANDIDATE_DATA_EXPORT',
+      export_scope:'PARTIAL',
+      dsar_certified:false,
       generated_at:generatedAt,
       generated_by:{user_id:user.id,role:user.role},
       subject:{type:'candidate',candidate_id:candidateId},
@@ -49,6 +51,7 @@ export async function GET(req){
         current_source:consentHistory.current?.source||candidate.consentSource||null,
         current_consent_at:consentHistory.current?.consent_at||null,
         history_available:consentHistory.history_available===true,
+        history_certified:consentHistory.history_certified===true,
         events:consentHistory.events||[],
         scope_note:consentHistory.scope_note
       },
@@ -63,9 +66,10 @@ export async function GET(req){
       recruitment_activity:Array.isArray(closeout.activity)?closeout.activity:[],
       merge_history:Array.isArray(closeout.merge_history)?closeout.merge_history:[],
       talent_pools:Array.isArray(closeout.talent_pools)?closeout.talent_pools:[],
-      duplicate_signals:Array.isArray(closeout.duplicates)?closeout.duplicates:[],
       limitations:[
-        'Consent history contains public-application events plus audited in-app changes from the consent-audit implementation onward; older non-application changes may not be reconstructable.',
+        'This is a candidate data export foundation, not a certified complete DSAR response. Candidate-linked applications, interviews, offers, placements and all downstream processor data must be included before DSAR certification.',
+        'Consent history contains public-application events plus best-effort audited in-app changes; it is not transactionally certified until consent mutation and history write share one verified database transaction.',
+        'Other candidates\' duplicate-match data is intentionally excluded to avoid third-party PII disclosure.',
         'Retention/deletion execution is not yet enterprise-certified.',
         'Private document binary contents are not embedded in this JSON export.'
       ]
