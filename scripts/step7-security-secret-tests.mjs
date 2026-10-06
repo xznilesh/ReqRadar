@@ -37,6 +37,11 @@ assert.ok(storage.includes("process.env.SUPABASE_SERVICE_ROLE_KEY"),'storage ser
 assert.ok(rate.includes("process.env.SUPABASE_SERVICE_ROLE_KEY"),'rate limiter service-role use must remain server environment managed');
 assert.ok(!storage.startsWith("'use client'")&&!rate.startsWith("'use client'"));
 
+const supabaseApi=fs.readFileSync('lib/supabase-api.js','utf8');
+assert.ok(supabaseApi.includes('XZRECRUITER_SUPABASE_URL')&&supabaseApi.includes('XZRECRUITER_SUPABASE_PUBLISHABLE_KEY'),'Supabase backend must be explicitly environment configured');
+assert.ok(supabaseApi.includes("throw new Error('xzrecruiter_supabase_not_configured')"),'missing Supabase configuration must fail closed');
+assert.ok(!/https:\/\/[a-z0-9]{20}\.supabase\.co/i.test(supabaseApi),'hard-coded Supabase project URL is forbidden in runtime source');
+
 const aiServerCandidates=files.filter((f)=>/ai-server|candidate-ai-server|jd-ai-server/i.test(f));
 for(const file of aiServerCandidates){
   const c=fs.readFileSync(file,'utf8');
