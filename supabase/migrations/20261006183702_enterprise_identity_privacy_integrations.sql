@@ -166,6 +166,131 @@ create table if not exists public.candidate_retention_runs (
 create index if not exists idx_xzr_retention_runs_candidate
   on public.candidate_retention_runs(agency_id,candidate_id,started_at desc);
 
+alter table public.organization_data_governance
+  add column if not exists candidate_privacy_notice_version text,
+  add column if not exists candidate_privacy_notice_url text,
+  add column if not exists candidate_privacy_notice_text text,
+  add column if not exists candidate_ai_notice_text text,
+  add column if not exists candidate_notice_effective_at timestamptz;
+
+create or replace function public.xzrecruiter_public_privacy_notice(p_slug text)
+returns jsonb
+language sql
+stable
+security definer
+set search_path='public','pg_temp'
+as $function$
+  select coalesce((
+    select jsonb_build_object(
+      'ok',true,
+      'notice',jsonb_build_object(
+        'version',g.candidate_privacy_notice_version,
+        'url',g.candidate_privacy_notice_url,
+        'text',g.candidate_privacy_notice_text,
+        'ai_notice',g.candidate_ai_notice_text,
+        'effective_at',g.candidate_notice_effective_at,
+        'human_review_required',true
+      )
+    )
+    from public.recruitment_jobs j
+    left join public.organization_data_governance g on g.agency_id=j.agency_id
+    where j.public_slug=p_slug
+      and j.public_visibility='PUBLIC'
+      and j.archived_at is null
+      and j.status='OPEN'
+    limit 1
+  ),jsonb_build_object('ok',false,'error','not_found'));
+$function$;
+
+revoke all on function public.xzrecruiter_public_privacy_notice(text) from public;
+grant execute on function public.xzrecruiter_public_privacy_notice(text) to anon,authenticated;
+
+create or replace function public.xzrecruiter_public_apply_with_notice(
+  p_slug text,
+  p_application jsonb,
+  p_notice_version text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path='public','extensions','pg_temp'
+as $function$
+declare
+  v_job public.recruitment_jobs%rowtype;
+  v_notice public.organization_data_governance%rowtype;
+  v_result jsonb;
+  v_application uuid;
+  v_candidate uuid;
+begin
+  select * into v_job
+  from public.recruitment_jobs
+  where public_slug=p_slug
+    and public_visibility='PUBLIC'
+    and archived_at is null
+    and status='OPEN'
+  limit 1;
+  if v_job.id is null then
+    return jsonb_build_object('ok',false,'error','not_found');
+  end if;
+
+  select * into v_notice
+  from public.organization_data_governance
+  where agency_id=v_job.agency_id;
+
+  if nullif(btrim(coalesce(v_notice.candidate_privacy_notice_version,'')),'') is not null
+     and btrim(coalesce(p_notice_version,''))<>btrim(v_notice.candidate_privacy_notice_version) then
+    return jsonb_build_object(
+      'ok',false,
+      'error','privacy_notice_required',
+      'notice_version',v_notice.candidate_privacy_notice_version
+    );
+  end if;
+
+  v_result:=public.xzrecruiter_public_apply(p_slug,p_application);
+  if coalesce((v_result->>'ok')::boolean,false) is not true then
+    return v_result;
+  end if;
+
+  v_application:=nullif(v_result->>'application_id','')::uuid;
+  select candidate_id into v_candidate
+  from public.applications
+  where id=v_application and agency_id=v_job.agency_id;
+
+  if v_candidate is not null then
+    update public.applications
+    set metadata=coalesce(metadata,'{}'::jsonb)||jsonb_build_object(
+      'privacy_notice_version',nullif(v_notice.candidate_privacy_notice_version,''),
+      'privacy_notice_url',nullif(v_notice.candidate_privacy_notice_url,''),
+      'privacy_notice_accepted_at',now(),
+      'ai_notice_present',nullif(v_notice.candidate_ai_notice_text,'') is not null,
+      'human_review_required',true
+    )
+    where id=v_application and agency_id=v_job.agency_id;
+
+    insert into public.audit_events(
+      id,agency_id,actor_user_id,action,entity_type,entity_id,metadata
+    ) values(
+      gen_random_uuid(),v_job.agency_id,null,'candidate.consent_notice_accepted','candidate',v_candidate,
+      jsonb_build_object(
+        'transactional',true,
+        'application_id',v_application,
+        'notice_version',nullif(v_notice.candidate_privacy_notice_version,''),
+        'notice_url',nullif(v_notice.candidate_privacy_notice_url,''),
+        'ai_notice_present',nullif(v_notice.candidate_ai_notice_text,'') is not null,
+        'human_review_required',true
+      )
+    );
+  end if;
+
+  return v_result||jsonb_build_object(
+    'privacy_notice_version',nullif(v_notice.candidate_privacy_notice_version,'')
+  );
+end;
+$function$;
+
+revoke all on function public.xzrecruiter_public_apply_with_notice(text,jsonb,text) from public;
+grant execute on function public.xzrecruiter_public_apply_with_notice(text,jsonb,text) to anon,authenticated;
+
 create or replace function private.xzrecruiter_candidate_consent_history_trigger()
 returns trigger
 language plpgsql
