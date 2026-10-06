@@ -42,9 +42,10 @@ for(const name of [
  'XZRECRUITER_ENTERPRISE_AUTH_EVIDENCE',
  'XZRECRUITER_PRIVACY_COMPLIANCE_EVIDENCE',
  'XZRECRUITER_INTEGRATIONS_EVIDENCE',
+ 'XZRECRUITER_JOB_BOARD_EVIDENCE',
  'XZRECRUITER_OBSERVABILITY_EVIDENCE',
  'XZRECRUITER_PILOT_EVIDENCE'
 ])missing(name);
 
 if(blockers.length){console.error('STEP9_RELEASE_BLOCKED '+JSON.stringify([...new Set(blockers)]));process.exit(2)}
-console.log('STEP9_RELEASE_GATE_PASS source=true live_db=true security=true ai=true health=true malware_scan=true backup_restore=true browser_e2e=true load=true tenant_isolation=true enterprise_auth=true privacy=true integrations=true observability=true pilot=true');
+console.log('STEP9_RELEASE_GATE_PASS source=true live_db=true security=true ai=true health=true malware_scan=true backup_restore=true browser_e2e=true load=true tenant_isolation=true enterprise_auth=true privacy=true integrations=true job_boards=true observability=true pilot=true');
