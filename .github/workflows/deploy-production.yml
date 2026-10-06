@@ -40,8 +40,8 @@ jobs:
           npm run test:step9
           npm audit --omit=dev --audit-level=high
 
-      - name: Migration collision hard stop
-        run: node scripts/step9-repository-audit.mjs --release
+      - name: Source enterprise release preflight
+        run: npm run test:step9:release-source
 
       - name: Install browser and PostgreSQL client
         run: |
