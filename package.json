@@ -103,7 +103,6 @@
     "test:step9:browser-live": "node scripts/enterprise-browser-e2e.mjs",
     "test:step9:load-live": "node scripts/step9-postgres-load.mjs",
     "test:step9:tenant-isolation-live": "node scripts/step9-tenant-isolation-live.mjs",
-    "test:step9:tenant-live": "node scripts/step9-tenant-isolation-live.mjs",
     "test:step9:enterprise-capabilities": "node scripts/step9-enterprise-capability-audit.mjs",
     "test:step9:release-source": "node scripts/step9-source-release-preflight.mjs",
     "test:step9:session-admin": "node scripts/step9-enterprise-auth-static.mjs"
