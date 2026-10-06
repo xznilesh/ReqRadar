@@ -24,6 +24,18 @@ jobs:
       - run: npm run build
         env:
           DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/postgres
+
+      - name: Hard release gate
+        run: npm run test:step9:release
+        env:
+          XZRECRUITER_RELEASE_BASE_URL: https://xzrecruiter.vercel.app
+          XZRECRUITER_DATABASE_URL: ${{ secrets.XZRECRUITER_DATABASE_URL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          XZRECRUITER_BACKUP_RESTORE_EVIDENCE: ${{ vars.XZRECRUITER_BACKUP_RESTORE_EVIDENCE }}
+          XZRECRUITER_BROWSER_E2E_EVIDENCE: ${{ vars.XZRECRUITER_BROWSER_E2E_EVIDENCE }}
+          XZRECRUITER_PILOT_EVIDENCE: ${{ vars.XZRECRUITER_PILOT_EVIDENCE }}
+
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
       - name: Link Vercel project
