@@ -39,8 +39,9 @@ assert.ok(storage.includes('assertSafeStoragePath'),'server storage must validat
 assert.ok(!/getPublicUrl|\/object\/public\//.test(storage),'private storage helper must never generate public URLs');
 assert.ok(storage.includes('await scanPrivateUpload'),'all private storage writes must pass through the malware scanning abstraction');
 assert.ok(scanner.includes('XZRECRUITER_MALWARE_SCAN_URL')&&scanner.includes('XZRECRUITER_MALWARE_SCAN_TOKEN'),'scanner configuration must remain environment managed');
-assert.ok(scanner.includes("status:'NOT_CONFIGURED'")&&scanner.includes("throw new Error('malware_detected')"),'scanner must distinguish unavailable configuration from detected malware');
-assert.ok(scanner.includes('AbortController')&&scanner.includes('5000'),'configured scanner calls must be timeout bounded');
+assert.ok(scanner.includes("throw new Error('malware_scan_not_configured')")&&scanner.includes("throw new Error('malware_detected')"),'scanner must fail closed when unavailable and block malicious files');
+assert.ok(scanner.includes('XZRECRUITER_ALLOW_UNSCANNED_UPLOADS')&&scanner.includes("process.env.NODE_ENV!=='production'"),'unscanned bypass must be explicit and impossible in production');
+assert.ok(scanner.includes('AbortController')&&scanner.includes('SCAN_TIMEOUT_MS'),'configured scanner calls must be timeout bounded');
 
 for(const route of ['app/api/ats/document/route.js','app/api/ats/attachment/route.js']){
   const c=fs.readFileSync(route,'utf8');
@@ -48,4 +49,4 @@ for(const route of ['app/api/ats/document/route.js','app/api/ats/attachment/rout
   assert.ok(/atsAction\([^\n]*(Access|access)/.test(c),'signed URL must be issued only after server authorization RPC');
 }
 
-console.log('STEP7_FILE_SECURITY_PASS magic=true mime=true extension=true traversal=true private_storage=true signed_ttl=true malware_hook=true');
+console.log('STEP7_FILE_SECURITY_PASS magic=true mime=true extension=true traversal=true private_storage=true signed_ttl=true malware_fail_closed=true');

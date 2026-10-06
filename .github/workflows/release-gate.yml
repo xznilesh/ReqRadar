@@ -1,29 +1,169 @@
-name: XZRecruiter Step 9 release gate
+name: XZRecruiter enterprise release gate
 on:
   workflow_dispatch:
   pull_request:
     branches: [main]
+
+permissions:
+  contents: read
+
 jobs:
   release_gate:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
-      - run: npm ci --no-audit --no-fund
-      - run: npm run test:step9
-      - run: npm run build
+
+      - name: Deterministic install
+        run: npm ci --no-audit --no-fund
+
+      - name: Generate CycloneDX SBOM
+        run: npm sbom --sbom-format cyclonedx > sbom.cdx.json
+
+      - name: Source QA
+        id: source_qa
+        if: always()
+        continue-on-error: true
+        run: npm run test:step9
+
+      - name: Dependency security gate
+        id: dependency_audit
+        if: always()
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Production build
+        id: production_build
+        if: always()
+        continue-on-error: true
+        run: npm run build
         env:
           DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/postgres
-      - run: npm audit --omit=dev --audit-level=high
-      - run: npm run test:step9:release
+
+      - name: Source release preflight diagnostics
+        id: source_preflight
+        if: always()
+        continue-on-error: true
+        run: npm run test:step9:release-source
+
+      - name: Install browser and PostgreSQL client
+        id: diagnostic_tools
+        if: always()
+        continue-on-error: true
+        run: |
+          npx playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Diagnostic — existing browser regression suite
+        id: browser_regression
+        if: always()
+        continue-on-error: true
+        run: npm run test:ui:browser
+
+      - name: Diagnostic — enterprise browser golden path
+        id: enterprise_browser
+        if: always()
+        continue-on-error: true
+        run: |
+          node scripts/enterprise-browser-e2e.mjs
+          echo "XZRECRUITER_BROWSER_E2E_EVIDENCE=github-actions:${{ github.run_id }}:enterprise-browser-e2e" >> "$GITHUB_ENV"
         env:
-          XZRECRUITER_RELEASE_BASE_URL: https://xzrecruiter.vercel.app
+          XZRECRUITER_E2E_BASE_URL: ${{ vars.XZRECRUITER_E2E_BASE_URL }}
+          XZRECRUITER_E2E_EMAIL: ${{ secrets.XZRECRUITER_E2E_EMAIL }}
+          XZRECRUITER_E2E_PASSWORD: ${{ secrets.XZRECRUITER_E2E_PASSWORD }}
+          XZRECRUITER_E2E_JOB_ID: ${{ vars.XZRECRUITER_E2E_JOB_ID }}
+          XZRECRUITER_E2E_APPLICATION_ID: ${{ vars.XZRECRUITER_E2E_APPLICATION_ID }}
+          XZRECRUITER_E2E_CANDIDATE_NAME: ${{ vars.XZRECRUITER_E2E_CANDIDATE_NAME }}
+          XZRECRUITER_E2E_JOB_TITLE: ${{ vars.XZRECRUITER_E2E_JOB_TITLE }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+
+      - name: Diagnostic — live dual-tenant isolation abuse test
+        id: tenant_isolation
+        if: always()
+        continue-on-error: true
+        run: |
+          node scripts/step9-tenant-isolation-live.mjs
+          echo "XZRECRUITER_TENANT_ISOLATION_EVIDENCE=github-actions:${{ github.run_id }}:dual-tenant-live" >> "$GITHUB_ENV"
+        env:
+          XZRECRUITER_E2E_BASE_URL: ${{ vars.XZRECRUITER_E2E_BASE_URL }}
+          XZRECRUITER_TENANT_A_EMAIL: ${{ secrets.XZRECRUITER_TENANT_A_EMAIL }}
+          XZRECRUITER_TENANT_A_PASSWORD: ${{ secrets.XZRECRUITER_TENANT_A_PASSWORD }}
+          XZRECRUITER_TENANT_A_CANDIDATE_ID: ${{ vars.XZRECRUITER_TENANT_A_CANDIDATE_ID }}
+          XZRECRUITER_TENANT_A_DOCUMENT_ID: ${{ vars.XZRECRUITER_TENANT_A_DOCUMENT_ID }}
+          XZRECRUITER_TENANT_B_EMAIL: ${{ secrets.XZRECRUITER_TENANT_B_EMAIL }}
+          XZRECRUITER_TENANT_B_PASSWORD: ${{ secrets.XZRECRUITER_TENANT_B_PASSWORD }}
+          XZRECRUITER_TENANT_B_CANDIDATE_ID: ${{ vars.XZRECRUITER_TENANT_B_CANDIDATE_ID }}
+          XZRECRUITER_TENANT_B_DOCUMENT_ID: ${{ vars.XZRECRUITER_TENANT_B_DOCUMENT_ID }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+
+      - name: Diagnostic — production-like PostgreSQL load certification
+        id: postgres_load
+        if: always()
+        continue-on-error: true
+        run: |
+          node scripts/step9-postgres-load.mjs
+          echo "XZRECRUITER_LOAD_TEST_EVIDENCE=github-actions:${{ github.run_id }}:postgres-load" >> "$GITHUB_ENV"
+        env:
+          XZRECRUITER_PERF_DATABASE_URL: ${{ secrets.XZRECRUITER_PERF_DATABASE_URL }}
+          XZRECRUITER_DATABASE_URL: ${{ secrets.XZRECRUITER_DATABASE_URL }}
+          XZRECRUITER_PERF_SIZES: 1000,10000,50000,100000
+          XZRECRUITER_PERF_REPETITIONS: 100
+          XZRECRUITER_PERF_P95_MS: ${{ vars.XZRECRUITER_PERF_P95_MS }}
+          XZRECRUITER_PERF_P99_MS: ${{ vars.XZRECRUITER_PERF_P99_MS }}
+
+      - name: Diagnostic — final enterprise release certification
+        id: final_release
+        if: always()
+        continue-on-error: true
+        run: npm run test:step9:release
+        env:
+          XZRECRUITER_RELEASE_BASE_URL: ${{ vars.XZRECRUITER_E2E_BASE_URL }}
           XZRECRUITER_DATABASE_URL: ${{ secrets.XZRECRUITER_DATABASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          XZRECRUITER_MALWARE_SCAN_URL: ${{ secrets.XZRECRUITER_MALWARE_SCAN_URL }}
           XZRECRUITER_BACKUP_RESTORE_EVIDENCE: ${{ vars.XZRECRUITER_BACKUP_RESTORE_EVIDENCE }}
-          XZRECRUITER_BROWSER_E2E_EVIDENCE: ${{ vars.XZRECRUITER_BROWSER_E2E_EVIDENCE }}
+          XZRECRUITER_ENTERPRISE_AUTH_EVIDENCE: ${{ vars.XZRECRUITER_ENTERPRISE_AUTH_EVIDENCE }}
+          XZRECRUITER_PRIVACY_COMPLIANCE_EVIDENCE: ${{ vars.XZRECRUITER_PRIVACY_COMPLIANCE_EVIDENCE }}
+          XZRECRUITER_INTEGRATIONS_EVIDENCE: ${{ vars.XZRECRUITER_INTEGRATIONS_EVIDENCE }}
+          XZRECRUITER_JOB_BOARD_EVIDENCE: ${{ vars.XZRECRUITER_JOB_BOARD_EVIDENCE }}
+          XZRECRUITER_OBSERVABILITY_EVIDENCE: ${{ vars.XZRECRUITER_OBSERVABILITY_EVIDENCE }}
           XZRECRUITER_PILOT_EVIDENCE: ${{ vars.XZRECRUITER_PILOT_EVIDENCE }}
+
+      - name: Assert certification outcomes
+        if: always()
+        run: |
+          set -euo pipefail
+          failed=0
+          for outcome in \
+            "${{ steps.source_qa.outcome }}" \
+            "${{ steps.dependency_audit.outcome }}" \
+            "${{ steps.production_build.outcome }}" \
+            "${{ steps.source_preflight.outcome }}" \
+            "${{ steps.diagnostic_tools.outcome }}" \
+            "${{ steps.browser_regression.outcome }}" \
+            "${{ steps.enterprise_browser.outcome }}" \
+            "${{ steps.tenant_isolation.outcome }}" \
+            "${{ steps.postgres_load.outcome }}" \
+            "${{ steps.final_release.outcome }}"; do
+            if [ "$outcome" != "success" ]; then failed=1; fi
+          done
+          if [ "$failed" -ne 0 ]; then
+            echo "Enterprise release certification remains BLOCKED."
+            exit 1
+          fi
+          echo "Enterprise release certification passed all independent gates."
+
+      - name: Upload certification artifacts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: enterprise-release-${{ github.run_id }}
+          path: |
+            sbom.cdx.json
+            test-results/**
+          if-no-files-found: warn

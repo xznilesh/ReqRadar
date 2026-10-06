@@ -1,0 +1,58 @@
+name: XZRecruiter backup restore verification
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify_restored_database:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+      - name: Verify restore target is not production
+        run: |
+          node --input-type=module -e '
+            const restored=String(process.env.RESTORED||"").trim();
+            const production=String(process.env.PRODUCTION||"").trim();
+            if(!restored)throw new Error("missing restored database URL");
+            if(production && restored===production)throw new Error("restore drill must not target production");
+          '
+        env:
+          RESTORED: ${{ secrets.XZRECRUITER_RESTORED_DATABASE_URL }}
+          PRODUCTION: ${{ secrets.XZRECRUITER_DATABASE_URL }}
+      - name: Restored database integrity and migration verification
+        run: |
+          mkdir -p test-results
+          set -o pipefail
+          node scripts/step9-live-db.mjs 2>&1 | tee test-results/restore-live-db.txt
+        env:
+          XZRECRUITER_DATABASE_URL: ${{ secrets.XZRECRUITER_RESTORED_DATABASE_URL }}
+          XZRECRUITER_STORAGE_BUCKET: ${{ vars.XZRECRUITER_STORAGE_BUCKET }}
+          XZRECRUITER_SENSITIVE_STORAGE_BUCKET: ${{ vars.XZRECRUITER_SENSITIVE_STORAGE_BUCKET }}
+      - name: Restored database security verification
+        run: |
+          set -o pipefail
+          node scripts/step7-security-live-db.mjs 2>&1 | tee test-results/restore-security.txt
+        env:
+          XZRECRUITER_DATABASE_URL: ${{ secrets.XZRECRUITER_RESTORED_DATABASE_URL }}
+      - name: Record restore drill evidence
+        run: |
+          printf 'run_id=%s\ncommit=%s\nverified_at=%s\n'             "${{ github.run_id }}" "${{ github.sha }}" "$(date -u +%FT%TZ)"             > test-results/restore-evidence.txt
+      - name: Upload restore drill evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: backup-restore-verification-${{ github.run_id }}
+          path: test-results/**
+          if-no-files-found: error

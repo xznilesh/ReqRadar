@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { mutationRequestIsTrusted,declaredBodyWithin } from '@/lib/request-security';
 import { atsAction } from '@/lib/ats';
 import { getRecruiterHome } from '@/lib/recruiter';
+import { telemetryError } from '@/lib/telemetry';
+import { getCurrentUser } from '@/lib/auth';
+import { recordConsentChange } from '@/lib/compliance-data';
 
 function sameOrigin(req) {
   const origin = req.headers.get('origin');
@@ -37,11 +40,49 @@ export async function POST(req) {
         return NextResponse.json({ok:false,error:'execution_workspace_required'},{status:403});
       }
     }
-    const result = await atsAction(action, body.payload || {});
+    const payload=body.payload||{};
+    let consentBefore=null;
+    const consentCandidateId=String(payload?.candidateId||'');
+    const profile=payload?.profile||{};
+    const consentTouched=action==='updateCandidateProfile'
+      && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(consentCandidateId)
+      && (Object.prototype.hasOwnProperty.call(profile,'consentStatus')||Object.prototype.hasOwnProperty.call(profile,'consentSource'));
+    if(consentTouched){
+      consentBefore=await atsAction('candidateProfileContext',{candidateId:consentCandidateId}).catch(()=>null);
+    }
+
+    const result = await atsAction(action, payload);
     if (!result?.ok) return NextResponse.json(result || { error: 'Action failed.' }, { status: statusFor(result?.error) });
+
+    if(consentTouched&&consentBefore?.ok){
+      try{
+        const [consentAfter,user]=await Promise.all([
+          atsAction('candidateProfileContext',{candidateId:consentCandidateId}),
+          getCurrentUser()
+        ]);
+        if(consentAfter?.ok&&user?.id&&user?.agency_id){
+          await recordConsentChange({
+            agencyId:user.agency_id,
+            actorUserId:user.id,
+            candidateId:consentCandidateId,
+            before:{
+              status:consentBefore.profile?.consentStatus,
+              source:consentBefore.profile?.consentSource
+            },
+            after:{
+              status:consentAfter.profile?.consentStatus,
+              source:consentAfter.profile?.consentSource
+            }
+          });
+        }
+      }catch(error){
+        telemetryError('candidate_consent_audit_failed',error,{action:'candidate.consent_changed'});
+        return NextResponse.json({ok:false,error:'consent_audit_failed'},{status:503});
+      }
+    }
     return NextResponse.json(result);
   } catch (error) {
-    console.error('ats_action_failed', body?.action, error?.message || '');
+    telemetryError('ats_action_failed',error,{action:String(body?.action||'unknown').slice(0,80),status_code:error?.status||503});
     return NextResponse.json({ error: 'Recruitment action is temporarily unavailable.' }, { status: 503 });
   }
 }
