@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 import { getAuthUser, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-api';
 import { setSession } from '@/lib/auth';
 import { createWorkspaceSessionFromSso, resolveWorkspaceForSso } from '@/lib/sso-auth';
-import { requireSsoMfa, setPendingMfa, tokenHasAal2 } from '@/lib/mfa-auth';
+import { requireSsoMfa, setPendingMfa, tokenHasAal2 } from '@/lib/mfa-auth';\nimport { sessionDeviceMetadata } from '@/lib/session-device';
 
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
@@ -85,7 +85,8 @@ export async function GET(req){
       email:authUser.email,
       authUserId:authUser.id,
       providerId:method.provider||payload?.app_metadata?.provider||null,
-      resolved
+      resolved,
+      deviceMetadata:sessionDeviceMetadata(req)
     });
     await setSession(appSession.token);
 
