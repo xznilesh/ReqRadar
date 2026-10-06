@@ -63,6 +63,24 @@ jobs:
           XZRECRUITER_E2E_JOB_TITLE: ${{ vars.XZRECRUITER_E2E_JOB_TITLE }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
+      - name: Live dual-tenant isolation abuse test
+        id: tenant_isolation
+        continue-on-error: true
+        run: |
+          node scripts/step9-tenant-isolation-live.mjs
+          echo "XZRECRUITER_TENANT_ISOLATION_EVIDENCE=github-actions:${{ github.run_id }}:dual-tenant-live" >> "$GITHUB_ENV"
+        env:
+          XZRECRUITER_E2E_BASE_URL: ${{ vars.XZRECRUITER_E2E_BASE_URL }}
+          XZRECRUITER_TENANT_A_EMAIL: ${{ secrets.XZRECRUITER_TENANT_A_EMAIL }}
+          XZRECRUITER_TENANT_A_PASSWORD: ${{ secrets.XZRECRUITER_TENANT_A_PASSWORD }}
+          XZRECRUITER_TENANT_A_CANDIDATE_ID: ${{ vars.XZRECRUITER_TENANT_A_CANDIDATE_ID }}
+          XZRECRUITER_TENANT_A_DOCUMENT_ID: ${{ vars.XZRECRUITER_TENANT_A_DOCUMENT_ID }}
+          XZRECRUITER_TENANT_B_EMAIL: ${{ secrets.XZRECRUITER_TENANT_B_EMAIL }}
+          XZRECRUITER_TENANT_B_PASSWORD: ${{ secrets.XZRECRUITER_TENANT_B_PASSWORD }}
+          XZRECRUITER_TENANT_B_CANDIDATE_ID: ${{ vars.XZRECRUITER_TENANT_B_CANDIDATE_ID }}
+          XZRECRUITER_TENANT_B_DOCUMENT_ID: ${{ vars.XZRECRUITER_TENANT_B_DOCUMENT_ID }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+
       - name: Production-like PostgreSQL load certification
         id: postgres_load
         continue-on-error: true
