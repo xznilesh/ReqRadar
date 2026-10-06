@@ -34,10 +34,10 @@ jobs:
         env:
           DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/postgres
 
-      - name: Migration collision hard stop
-        id: migration_gate
+      - name: Source release preflight diagnostics
+        id: source_preflight
         continue-on-error: true
-        run: node scripts/step9-repository-audit.mjs --release
+        run: npm run test:step9:release-source
 
       - name: Install browser and PostgreSQL client
         run: |
@@ -45,12 +45,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client
 
-      - name: Existing browser regression suite
+      - name: Diagnostic — existing browser regression suite
         id: browser_regression
         continue-on-error: true
         run: npm run test:ui:browser
 
-      - name: Enterprise browser golden path
+      - name: Diagnostic — enterprise browser golden path
         id: enterprise_browser
         continue-on-error: true
         run: |
@@ -66,7 +66,7 @@ jobs:
           XZRECRUITER_E2E_JOB_TITLE: ${{ vars.XZRECRUITER_E2E_JOB_TITLE }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
-      - name: Live dual-tenant isolation abuse test
+      - name: Diagnostic — live dual-tenant isolation abuse test
         id: tenant_isolation
         continue-on-error: true
         run: |
@@ -84,7 +84,7 @@ jobs:
           XZRECRUITER_TENANT_B_DOCUMENT_ID: ${{ vars.XZRECRUITER_TENANT_B_DOCUMENT_ID }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
-      - name: Production-like PostgreSQL load certification
+      - name: Diagnostic — production-like PostgreSQL load certification
         id: postgres_load
         continue-on-error: true
         run: |
@@ -98,7 +98,7 @@ jobs:
           XZRECRUITER_PERF_P95_MS: ${{ vars.XZRECRUITER_PERF_P95_MS }}
           XZRECRUITER_PERF_P99_MS: ${{ vars.XZRECRUITER_PERF_P99_MS }}
 
-      - name: Final enterprise release certification
+      - name: Diagnostic — final enterprise release certification
         id: final_release
         if: always()
         continue-on-error: true
@@ -122,7 +122,7 @@ jobs:
           set -euo pipefail
           failed=0
           for outcome in \
-            "${{ steps.migration_gate.outcome }}" \
+            "${{ steps.source_preflight.outcome }}" \
             "${{ steps.browser_regression.outcome }}" \
             "${{ steps.enterprise_browser.outcome }}" \
             "${{ steps.tenant_isolation.outcome }}" \
