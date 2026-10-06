@@ -35,7 +35,7 @@ export async function GET(){
       capabilities:{
         targeted_revoke:true,
         workspace_scoped:true,
-        device_metadata:false
+        device_metadata:true
       }
     },{headers:{'Cache-Control':'private, no-store'}});
   }catch(error){
