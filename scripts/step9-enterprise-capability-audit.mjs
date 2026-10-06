@@ -19,7 +19,7 @@ const checks=[
   exactCheck({
     name:'enterprise_auth_sso',
     files:['app/api/auth/sso/route.js','app/api/auth/sso/callback/route.js'],
-    tokens:['signInWithSSO','auth/v1/sso','state']
+    tokens:['auth/v1/sso','code_challenge','grant_type=pkce','sso/saml']
   }),
   exactCheck({
     name:'enterprise_auth_mfa',
