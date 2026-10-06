@@ -34,7 +34,7 @@ const checks=[
   exactCheck({
     name:'enterprise_auth_admin_session_management',
     files:['app/api/admin/sessions/route.js','lib/admin-sessions.js'],
-    tokens:['OWNER','ADMIN','revokeWorkspaceSession','auth.session_revoked','token_hash']
+    tokens:['OWNER','ADMIN','revokeWorkspaceSession','auth.session_revoked','token_hash','device_metadata:true']
   }),
 
   exactCheck({
@@ -50,7 +50,7 @@ const checks=[
   exactCheck({
     name:'privacy_consent_history',
     files:['lib/compliance-data.js','app/api/compliance/dsar-export/route.js'],
-    tokens:['candidateConsentHistory','candidate.consent_changed','history_available']
+    tokens:['candidateConsentHistory','candidate.consent_changed','history_certified:true']
   }),
   exactCheck({
     name:'privacy_ai_decision_export',
