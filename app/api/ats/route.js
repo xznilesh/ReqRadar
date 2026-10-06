@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { mutationRequestIsTrusted,declaredBodyWithin } from '@/lib/request-security';
 import { atsAction } from '@/lib/ats';
 import { getRecruiterHome } from '@/lib/recruiter';
+import { telemetryError } from '@/lib/telemetry';
 
 function sameOrigin(req) {
   const origin = req.headers.get('origin');
@@ -41,7 +42,7 @@ export async function POST(req) {
     if (!result?.ok) return NextResponse.json(result || { error: 'Action failed.' }, { status: statusFor(result?.error) });
     return NextResponse.json(result);
   } catch (error) {
-    console.error('ats_action_failed', body?.action, error?.message || '');
+    telemetryError('ats_action_failed',error,{action:String(body?.action||'unknown').slice(0,80),status_code:error?.status||503});
     return NextResponse.json({ error: 'Recruitment action is temporarily unavailable.' }, { status: 503 });
   }
 }
