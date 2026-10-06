@@ -57,14 +57,14 @@ for(const file of migrations){const version=file.split('_')[0];if(!versions.has(
 const duplicateVersions=[...versions.entries()].filter(([,v])=>v.length>1);
 const apiRoutes=walk('app/api').filter(p=>p.endsWith('route.js')).length;
 for(const layer of ['unit','integration','e2e','security','ai','performance'])assert.ok(pkg.scripts['test:step9:'+layer],'missing Step-9 layer '+layer);
-for(const script of ['test:step9:browser-live','test:step9:load-live','test:step9:tenant-live'])assert.ok(pkg.scripts[script],'missing enterprise live test script '+script);
+for(const script of ['test:step9:browser-live','test:step9:load-live','test:step9:tenant-isolation-live'])assert.ok(pkg.scripts[script],'missing enterprise live test script '+script);
 assert.ok(!Object.keys(pkg.scripts).some(k=>/step10/i.test(k)),'Step 10 must not exist');
 const vercel=JSON.parse(fs.readFileSync('vercel.json','utf8'));
 assert.equal(vercel?.git?.deploymentEnabled,false,'Vercel native Git auto-deploy must remain disabled; production is CI-controlled');
 const deployWorkflow=fs.readFileSync('.github/workflows/deploy-production.yml','utf8');
 assert.ok(!deployWorkflow.includes('vercel@latest'),'Vercel CLI must be pinned, not latest');
 assert.ok(deployWorkflow.includes('--skip-domain')&&deployWorkflow.includes('vercel promote'),'production must stage, certify, then promote the exact artifact');
-assert.ok(deployWorkflow.includes('test:step9:tenant-live')&&deployWorkflow.includes('XZRECRUITER_TENANT_ISOLATION_EVIDENCE'),'production must certify live dual-tenant isolation');
+assert.ok(deployWorkflow.includes('test:step9:tenant-isolation-live')&&deployWorkflow.includes('XZRECRUITER_TENANT_ISOLATION_EVIDENCE'),'production must certify live dual-tenant isolation');
 const scanner=fs.readFileSync('lib/malware-scan.js','utf8');
 assert.ok(scanner.includes("throw new Error('malware_scan_not_configured')"),'private uploads must fail closed when malware scanner is unavailable');
 
