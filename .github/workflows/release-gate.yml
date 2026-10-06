@@ -24,22 +24,33 @@ jobs:
         run: npm sbom --sbom-format cyclonedx > sbom.cdx.json
 
       - name: Source QA
+        id: source_qa
+        if: always()
+        continue-on-error: true
         run: npm run test:step9
 
       - name: Dependency security gate
+        id: dependency_audit
+        if: always()
+        continue-on-error: true
         run: npm audit --omit=dev --audit-level=high
 
       - name: Production build
+        id: production_build
+        if: always()
+        continue-on-error: true
         run: npm run build
         env:
           DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/postgres
 
       - name: Source release preflight diagnostics
         id: source_preflight
+        if: always()
         continue-on-error: true
         run: npm run test:step9:release-source
 
       - name: Install browser and PostgreSQL client
+        if: always()
         run: |
           npx playwright install --with-deps chromium
           sudo apt-get update
@@ -47,11 +58,13 @@ jobs:
 
       - name: Diagnostic — existing browser regression suite
         id: browser_regression
+        if: always()
         continue-on-error: true
         run: npm run test:ui:browser
 
       - name: Diagnostic — enterprise browser golden path
         id: enterprise_browser
+        if: always()
         continue-on-error: true
         run: |
           node scripts/enterprise-browser-e2e.mjs
@@ -68,6 +81,7 @@ jobs:
 
       - name: Diagnostic — live dual-tenant isolation abuse test
         id: tenant_isolation
+        if: always()
         continue-on-error: true
         run: |
           node scripts/step9-tenant-isolation-live.mjs
@@ -86,6 +100,7 @@ jobs:
 
       - name: Diagnostic — production-like PostgreSQL load certification
         id: postgres_load
+        if: always()
         continue-on-error: true
         run: |
           node scripts/step9-postgres-load.mjs
@@ -122,6 +137,9 @@ jobs:
           set -euo pipefail
           failed=0
           for outcome in \
+            "${{ steps.source_qa.outcome }}" \
+            "${{ steps.dependency_audit.outcome }}" \
+            "${{ steps.production_build.outcome }}" \
             "${{ steps.source_preflight.outcome }}" \
             "${{ steps.browser_regression.outcome }}" \
             "${{ steps.enterprise_browser.outcome }}" \
