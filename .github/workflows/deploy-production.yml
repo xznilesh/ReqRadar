@@ -120,6 +120,20 @@ jobs:
           XZRECRUITER_E2E_JOB_TITLE: ${{ vars.XZRECRUITER_E2E_JOB_TITLE }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
+      - name: Live dual-tenant isolation on exact staged build
+        run: npm run test:step9:tenant-isolation-live
+        env:
+          XZRECRUITER_E2E_BASE_URL: ${{ steps.stage.outputs.url }}
+          XZRECRUITER_TENANT_A_EMAIL: ${{ secrets.XZRECRUITER_TENANT_A_EMAIL }}
+          XZRECRUITER_TENANT_A_PASSWORD: ${{ secrets.XZRECRUITER_TENANT_A_PASSWORD }}
+          XZRECRUITER_TENANT_A_CANDIDATE_ID: ${{ vars.XZRECRUITER_TENANT_A_CANDIDATE_ID }}
+          XZRECRUITER_TENANT_A_DOCUMENT_ID: ${{ vars.XZRECRUITER_TENANT_A_DOCUMENT_ID }}
+          XZRECRUITER_TENANT_B_EMAIL: ${{ secrets.XZRECRUITER_TENANT_B_EMAIL }}
+          XZRECRUITER_TENANT_B_PASSWORD: ${{ secrets.XZRECRUITER_TENANT_B_PASSWORD }}
+          XZRECRUITER_TENANT_B_CANDIDATE_ID: ${{ vars.XZRECRUITER_TENANT_B_CANDIDATE_ID }}
+          XZRECRUITER_TENANT_B_DOCUMENT_ID: ${{ vars.XZRECRUITER_TENANT_B_DOCUMENT_ID }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+
       - name: Hard enterprise release gate
         run: npm run test:step9:release
         env:
@@ -131,6 +145,7 @@ jobs:
           XZRECRUITER_BACKUP_RESTORE_EVIDENCE: ${{ vars.XZRECRUITER_BACKUP_RESTORE_EVIDENCE }}
           XZRECRUITER_BROWSER_E2E_EVIDENCE: github-actions:${{ github.run_id }}:enterprise-browser-e2e
           XZRECRUITER_LOAD_TEST_EVIDENCE: github-actions:${{ github.run_id }}:postgres-load
+          XZRECRUITER_TENANT_ISOLATION_EVIDENCE: github-actions:${{ github.run_id }}:dual-tenant-live
           XZRECRUITER_ENTERPRISE_AUTH_EVIDENCE: ${{ vars.XZRECRUITER_ENTERPRISE_AUTH_EVIDENCE }}
           XZRECRUITER_PRIVACY_COMPLIANCE_EVIDENCE: ${{ vars.XZRECRUITER_PRIVACY_COMPLIANCE_EVIDENCE }}
           XZRECRUITER_INTEGRATIONS_EVIDENCE: ${{ vars.XZRECRUITER_INTEGRATIONS_EVIDENCE }}
