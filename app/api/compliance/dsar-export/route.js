@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { atsAction } from '@/lib/ats';
+import { candidateConsentHistory } from '@/lib/compliance-data';
 
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
@@ -21,10 +22,11 @@ export async function GET(req){
   if(!uuid(candidateId))return NextResponse.json({ok:false,error:'invalid_candidate_id'},{status:400});
 
   try{
-    const [profile,closeout,flatExport]=await Promise.all([
+    const [profile,closeout,flatExport,consentHistory]=await Promise.all([
       atsAction('candidateProfileContext',{candidateId}),
       atsAction('candidateCloseout',{candidateId}),
-      atsAction('candidateExport',{candidateIds:[candidateId]})
+      atsAction('candidateExport',{candidateIds:[candidateId]}),
+      candidateConsentHistory({agencyId:user.agency_id,candidateId})
     ]);
     if(!profile?.ok){
       const status=profile?.error==='unauthorized'?401:profile?.error==='forbidden'?403:404;
@@ -43,10 +45,12 @@ export async function GET(req){
       subject:{type:'candidate',candidate_id:candidateId},
       candidate_profile:candidate,
       consent:{
-        current_status:candidate.consentStatus||'UNKNOWN',
-        current_source:candidate.consentSource||null,
-        history_available:false,
-        note:'Current consent state is included. Immutable consent-event history is a separate enterprise release requirement.'
+        current_status:consentHistory.current?.status||candidate.consentStatus||'UNKNOWN',
+        current_source:consentHistory.current?.source||candidate.consentSource||null,
+        current_consent_at:consentHistory.current?.consent_at||null,
+        history_available:consentHistory.history_available===true,
+        events:consentHistory.events||[],
+        scope_note:consentHistory.scope_note
       },
       retention:{
         current_status:candidate.retentionStatus||'ACTIVE',
@@ -61,7 +65,7 @@ export async function GET(req){
       talent_pools:Array.isArray(closeout.talent_pools)?closeout.talent_pools:[],
       duplicate_signals:Array.isArray(closeout.duplicates)?closeout.duplicates:[],
       limitations:[
-        'Immutable consent history is not yet implemented.',
+        'Consent history contains public-application events plus audited in-app changes from the consent-audit implementation onward; older non-application changes may not be reconstructable.',
         'Retention/deletion execution is not yet enterprise-certified.',
         'Private document binary contents are not embedded in this JSON export.'
       ]
