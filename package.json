@@ -101,7 +101,8 @@
     "test:ui:browser": "node scripts/ui-browser-tests.mjs",
     "test:step9:migration-reconcile": "node scripts/step9-migration-reconcile-report.mjs",
     "test:step9:browser-live": "node scripts/enterprise-browser-e2e.mjs",
-    "test:step9:load-live": "node scripts/step9-postgres-load.mjs"
+    "test:step9:load-live": "node scripts/step9-postgres-load.mjs",
+    "test:step9:tenant-isolation-live": "node scripts/step9-tenant-isolation-live.mjs"
   },
   "dependencies": {
     "@radix-ui/react-scroll-area": "1.2.18",
