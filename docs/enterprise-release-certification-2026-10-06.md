@@ -6,6 +6,17 @@
 
 This branch hardens release controls but does not claim XZRecruiter is enterprise-certified. Production promotion must remain blocked until the external/live checks below are executed successfully.
 
+## Verified environment evidence — 2026-10-06
+
+- GitHub source-quality CI passed deterministic `npm ci`, lint, dependency audit, typecheck, Steps 1–9 source suites, Playwright UI regression and clean Next.js production build.
+- Repository still contains 48 migration files with duplicate version prefixes: `20260903 ×34`, `20260925 ×5`, `20260927 ×4`, `20260929 ×2`.
+- The connected Supabase account exposes only `resumedigger` and `xzmargin`; the XZRecruiter project referenced by the old runtime fallback is not accessible to the connected Supabase account. No live migration/RLS/storage certification is claimed.
+- Vercel project `xzrecruiter` currently has **zero configured project environment variables**. The production deployment currently serving `xzrecruiter.vercel.app` is an older CLI deployment from commit `e260691733555b344dcfd7cb18c6fc694fe14864`.
+- The current production readiness endpoint returns HTTP 200 / database ready, but that old deployment still relies on the previous hard-coded Supabase fallback. This is health evidence only, not enterprise database certification.
+- Vercel reports XZRecruiter is **not Git-linked** in the team project linkage inventory; current production deployments are CLI-based. The hard release gate therefore protects the active deployment path, and `vercel.json` also disables future native Git deployment bypass.
+- GitHub production environment currently does not provide the live E2E fixture variables, performance database URL, production database URL, AI credential, malware scanner URL, or enterprise evidence variables required by the release gate. Earlier diagnostic steps failed on missing inputs; those failures must never be presented as successful certification.
+- No migration filename/history has been changed and no live XZRecruiter database mutation has been executed by this hardening work.
+
 ## Migration safety
 
 Do **not** rename or rewrite existing migration filenames until the actual XZRecruiter Supabase project is connected and its remote migration history has been compared with the repository.
