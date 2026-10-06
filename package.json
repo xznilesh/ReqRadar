@@ -103,7 +103,8 @@
     "test:step9:browser-live": "node scripts/enterprise-browser-e2e.mjs",
     "test:step9:load-live": "node scripts/step9-postgres-load.mjs",
     "test:step9:tenant-isolation-live": "node scripts/step9-tenant-isolation-live.mjs",
-    "test:step9:tenant-live": "node scripts/step9-tenant-isolation-live.mjs"
+    "test:step9:tenant-live": "node scripts/step9-tenant-isolation-live.mjs",
+    "test:step9:enterprise-capabilities": "node scripts/step9-enterprise-capability-audit.mjs"
   },
   "dependencies": {
     "@radix-ui/react-scroll-area": "1.2.18",
