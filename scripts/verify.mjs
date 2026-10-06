@@ -1,4 +1,11 @@
 import fs from 'node:fs';
+import path from 'node:path';
+const migrationDir='supabase/migrations';
+const migrationPath=(logicalName)=>{
+  const matches=fs.readdirSync(migrationDir).filter((f)=>f.endsWith(`_${logicalName}.sql`));
+  if(matches.length!==1) throw new Error(`Expected exactly one canonical migration for ${logicalName}; found ${matches.length}`);
+  return path.join(migrationDir,matches[0]);
+};
 const required = [
   'app/page.js','app/dashboard/page.js','app/login/page.js','app/signup/page.js','app/verify-email/page.js','app/reset-password/page.js',
   'app/settings/global/page.js','app/settings/page.js','app/onboarding/page.js','app/import/page.js',
@@ -9,10 +16,10 @@ const required = [
   'app/api/auth/verify-email/route.js','app/api/auth/password-reset/request/route.js','app/api/auth/password-reset/complete/route.js','app/api/health/ready/route.js',
   'app/step2.css','app/step3.css','lib/db.js','lib/auth.js','lib/globalization.js','lib/global-context.js','lib/onboarding.js','lib/csv.js','i18n/resources.js','public/xzrecruiter-logo.svg',
   'tests/fixtures/global-markets.json','tests/fixtures/step3-agencies.json','scripts/step2-tests.mjs','scripts/step3-tests.mjs',
-  'supabase/migrations/20260903_step1_foundation_security_branding.sql','supabase/migrations/20260903_step1_workspace_session_binding.sql',
-  'supabase/migrations/20260903_step2_global_operating_foundation.sql','supabase/migrations/20260903_step2_global_integrity_hardening.sql',
-  'supabase/migrations/20260903_step3_agency_onboarding_core.sql','supabase/migrations/20260903_step3_agency_onboarding_rpcs.sql',
-  'supabase/migrations/20260903_step3_safe_import_foundation.sql','supabase/migrations/20260903_step3_advanced_configuration_foundations.sql'
+  migrationPath('step1_foundation_security_branding'),migrationPath('step1_workspace_session_binding'),
+  migrationPath('step2_global_operating_foundation'),migrationPath('step2_global_integrity_hardening'),
+  migrationPath('step3_agency_onboarding_core'),migrationPath('step3_agency_onboarding_rpcs'),
+  migrationPath('step3_safe_import_foundation'),migrationPath('step3_advanced_configuration_foundations')
 ];
 const missing=required.filter((p)=>!fs.existsSync(p));
 if(missing.length){console.error('Missing required files:',missing.join(', '));process.exit(1);}
@@ -20,11 +27,11 @@ if(missing.length){console.error('Missing required files:',missing.join(', '));p
 const auth=fs.readFileSync('lib/auth.js','utf8');
 const signup=fs.readFileSync('app/api/auth/signup/route.js','utf8');
 const logo=fs.readFileSync('public/xzrecruiter-logo.svg','utf8');
-const step2=fs.readFileSync('supabase/migrations/20260903_step2_global_operating_foundation.sql','utf8');
-const step2Hardening=fs.readFileSync('supabase/migrations/20260903_step2_global_integrity_hardening.sql','utf8');
+const step2=fs.readFileSync(migrationPath('step2_global_operating_foundation'),'utf8');
+const step2Hardening=fs.readFileSync(migrationPath('step2_global_integrity_hardening'),'utf8');
 const step3Files=[
-  'supabase/migrations/20260903_step3_agency_onboarding_core.sql','supabase/migrations/20260903_step3_agency_onboarding_rpcs.sql',
-  'supabase/migrations/20260903_step3_safe_import_foundation.sql','supabase/migrations/20260903_step3_advanced_configuration_foundations.sql'
+  migrationPath('step3_agency_onboarding_core'),migrationPath('step3_agency_onboarding_rpcs'),
+  migrationPath('step3_safe_import_foundation'),migrationPath('step3_advanced_configuration_foundations')
 ].map((p)=>fs.readFileSync(p,'utf8')).join('\n');
 
 if(!auth.includes('__Host-xz_session')||!auth.includes('httpOnly: true')) throw new Error('Secure Step-1 session invariant missing');

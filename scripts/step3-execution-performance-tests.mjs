@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+const migrationPath=(logicalName)=>{const matches=fs.readdirSync('supabase/migrations').filter(f=>f.endsWith(`_${logicalName}.sql`));assert.equal(matches.length,1,`expected exactly one canonical migration for ${logicalName}`);return 'supabase/migrations/'+matches[0]};
 import { performance } from 'node:perf_hooks';
 import { sortPriorityRequirements } from '../lib/recruiter-execution.mjs';
 
-const sql=fs.readFileSync('supabase/migrations/20260926_step3_recruiter_execution_workspace.sql','utf8');
+const sql=fs.readFileSync(migrationPath('step3_recruiter_execution_workspace'),'utf8');
 const workspace=fs.readFileSync('app/components/RecruiterRequirementWorkspace.js','utf8');
 
 for(const index of [

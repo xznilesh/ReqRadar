@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+const migrationPath=(logicalName)=>{const matches=fs.readdirSync('supabase/migrations').filter(f=>f.endsWith(`_${logicalName}.sql`));assert.equal(matches.length,1,`expected exactly one canonical migration for ${logicalName}`);return 'supabase/migrations/'+matches[0]};
 import { detectPromptInjectionSignals } from '../lib/jd-contract.mjs';
 import { enforceAiSafetyContracts } from '../lib/jd-ai.mjs';
 import { mockOutputForFixture } from './jd-test-helpers.mjs';
 
-const sql=fs.readFileSync('supabase/migrations/20260925_step2_ai_jd_brain.sql','utf8');
+const sql=fs.readFileSync(migrationPath('step2_ai_jd_brain'),'utf8');
 const api=fs.readFileSync('app/api/requirements/jd/route.js','utf8');
 const upload=fs.readFileSync('app/api/requirements/jd/upload/route.js','utf8');
 const documentRoute=fs.readFileSync('app/api/requirements/jd/document/route.js','utf8');

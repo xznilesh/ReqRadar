@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+const migrationPath=(logicalName)=>{const matches=fs.readdirSync('supabase/migrations').filter(f=>f.endsWith(`_${logicalName}.sql`));assert.equal(matches.length,1,`expected exactly one canonical migration for ${logicalName}`);return 'supabase/migrations/'+matches[0]};
 
-const sql=fs.readFileSync('supabase/migrations/20260926_step3_recruiter_execution_workspace.sql','utf8');
+const sql=fs.readFileSync(migrationPath('step3_recruiter_execution_workspace'),'utf8');
 const api=fs.readFileSync('app/api/ats/route.js','utf8');
 const recruiterApi=fs.readFileSync('app/api/recruiter/route.js','utf8');
 const resumeApi=fs.readFileSync('app/api/recruiter/resume/route.js','utf8');

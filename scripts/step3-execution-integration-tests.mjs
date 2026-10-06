@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+const migrationPath=(logicalName)=>{const matches=fs.readdirSync('supabase/migrations').filter(f=>f.endsWith(`_${logicalName}.sql`));assert.equal(matches.length,1,`expected exactly one canonical migration for ${logicalName}`);return 'supabase/migrations/'+matches[0]};
 
-const migrationPath='supabase/migrations/20260926_step3_recruiter_execution_workspace.sql';
-const sql=fs.readFileSync(migrationPath,'utf8');
-assert.equal(fs.existsSync('supabase/migrations/20260925_step3_recruiter_execution_workspace.sql'),false,'duplicate Step-3 migration must not exist');
+const executionMigrationPath=migrationPath('step3_recruiter_execution_workspace');
+const sql=fs.readFileSync(executionMigrationPath,'utf8');
 assert.equal((sql.match(/as \$fn\$/g)||[]).length,(sql.match(/\$fn\$;/g)||[]).length,'unbalanced SQL function dollar quotes');
 assert.equal((sql.match(/do \$do\$/g)||[]).length,(sql.match(/\$do\$;/g)||[]).length,'unbalanced SQL DO dollar quotes');
 const recruiter=fs.readFileSync('lib/recruiter.js','utf8');
