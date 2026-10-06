@@ -1,0 +1,28 @@
+name: Export XZ Recruiter final source ZIP
+
+on:
+  push:
+    branches: [export-final-zip-20261006]
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact final main commit
+        uses: actions/checkout@v4
+        with:
+          ref: e260691733555b344dcfd7cb18c6fc694fe14864
+          fetch-depth: 1
+      - name: Create clean source archive
+        run: git archive --format=zip --output=XZ_Recruiter_Final_Main_2026-10-06.zip HEAD
+      - name: Upload final source archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: XZ-Recruiter-Final-Source
+          path: XZ_Recruiter_Final_Main_2026-10-06.zip
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
