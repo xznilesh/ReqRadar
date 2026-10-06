@@ -61,6 +61,7 @@ jobs:
           XZRECRUITER_E2E_APPLICATION_ID: ${{ vars.XZRECRUITER_E2E_APPLICATION_ID }}
           XZRECRUITER_E2E_CANDIDATE_NAME: ${{ vars.XZRECRUITER_E2E_CANDIDATE_NAME }}
           XZRECRUITER_E2E_JOB_TITLE: ${{ vars.XZRECRUITER_E2E_JOB_TITLE }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
       - name: Production-like PostgreSQL load certification
         id: postgres_load
