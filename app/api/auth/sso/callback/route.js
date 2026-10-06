@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { getAuthUser, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-api';
 import { setSession } from '@/lib/auth';
 import { createWorkspaceSessionFromSso } from '@/lib/sso-auth';
+import { requireSsoMfa, setPendingMfa, tokenHasAal2 } from '@/lib/mfa-auth';
 
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
@@ -72,6 +73,12 @@ export async function GET(req){
 
     const authUser=await getAuthUser(session.access_token);
     if(!authUser?.id||!authUser?.email)return fail(req,store,'sso_identity_incomplete');
+
+    if(requireSsoMfa()&&!tokenHasAal2(session.access_token)){
+      await setPendingMfa({accessToken:session.access_token,next});
+      await cleanup(store);
+      return NextResponse.redirect(new URL('/mfa',req.nextUrl.origin),303);
+    }
 
     const appSession=await createWorkspaceSessionFromSso({
       email:authUser.email,
