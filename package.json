@@ -95,7 +95,7 @@
     "test:step9:ai": "node scripts/step9-layer-runner.mjs ai",
     "test:step9:performance": "node scripts/step9-layer-runner.mjs performance",
     "test:step9:responsive": "node scripts/step9-layer-runner.mjs responsive",
-    "test:step9": "npm run test:step9:audit && npm run test:step9:unit && npm run test:step9:integration && npm run test:step9:e2e && npm run test:step9:security && npm run test:step9:ai && npm run test:step9:performance && npm run test:step9:responsive",
+    "test:step9": "npm run test:step9:audit && npm run test:step9:session-admin && npm run test:step9:unit && npm run test:step9:integration && npm run test:step9:e2e && npm run test:step9:security && npm run test:step9:ai && npm run test:step9:performance && npm run test:step9:responsive",
     "test:step9:live-db": "node scripts/step9-live-db.mjs",
     "test:step9:release": "node scripts/step9-release-gate.mjs",
     "test:ui:browser": "node scripts/ui-browser-tests.mjs",
@@ -105,7 +105,8 @@
     "test:step9:tenant-isolation-live": "node scripts/step9-tenant-isolation-live.mjs",
     "test:step9:tenant-live": "node scripts/step9-tenant-isolation-live.mjs",
     "test:step9:enterprise-capabilities": "node scripts/step9-enterprise-capability-audit.mjs",
-    "test:step9:release-source": "node scripts/step9-source-release-preflight.mjs"
+    "test:step9:release-source": "node scripts/step9-source-release-preflight.mjs",
+    "test:step9:session-admin": "node scripts/step9-enterprise-auth-static.mjs"
   },
   "dependencies": {
     "@radix-ui/react-scroll-area": "1.2.18",
