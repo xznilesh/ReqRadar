@@ -17,7 +17,7 @@ const required=[
  'app/api/health/ready/route.js','app/api/requirements/jd/route.js','app/api/candidate-intelligence/route.js',
  'app/api/submissions/route.js','app/api/automation/run/route.js','app/api/manager-control/route.js',
  'tests/fixtures/jd-regression.json','tests/fixtures/candidate-intelligence-regression.json','tests/fixtures/step5-screening.json','tests/fixtures/submission-pack-regression.json',
- 'package-lock.json','scripts/enterprise-browser-e2e.mjs','scripts/step9-postgres-load.mjs','scripts/step9-postgres-load.sql'
+ 'package-lock.json','scripts/enterprise-browser-e2e.mjs','scripts/step9-tenant-isolation-live.mjs','scripts/step9-postgres-load.mjs','scripts/step9-postgres-load.sql'
 ];
 for(const p of required)assert.ok(fs.existsSync(p),'missing release source '+p);
 
