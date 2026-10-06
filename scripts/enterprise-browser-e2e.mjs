@@ -34,7 +34,9 @@ try{
       assert.equal(response.ok(),true,'JD context endpoint failed');
       const body=await response.json();
       assert.equal(body?.ok,true,'JD context is not ready');
-      assert.ok(body?.brief?.approved_at||body?.brief?.status==='APPROVED'||body?.brief?.approval_status==='APPROVED','approved hiring brief missing');
+      assert.equal(body?.job?.recruiter_ready,true,'requirement is not recruiter-ready');
+      assert.equal(String(body?.job?.requirement_state||'').toUpperCase(),'OPEN','requirement is not open');
+      assert.equal(String(body?.brief?.brief_status||'').toUpperCase(),'APPROVED','approved hiring brief missing');
     }},
     {name:'SOURCING',path:'/recruiter',assertion:async()=>{
       await page.getByRole('heading',{name:'Today'}).waitFor({timeout:20000});
