@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { getAuthUser, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/lib/supabase-api';
 import { setSession } from '@/lib/auth';
-import { createWorkspaceSessionFromSso } from '@/lib/sso-auth';
+import { createWorkspaceSessionFromSso, resolveWorkspaceForSso } from '@/lib/sso-auth';
 import { requireSsoMfa, setPendingMfa, tokenHasAal2 } from '@/lib/mfa-auth';
 
 export const runtime='nodejs';
@@ -73,6 +73,7 @@ export async function GET(req){
 
     const authUser=await getAuthUser(session.access_token);
     if(!authUser?.id||!authUser?.email)return fail(req,store,'sso_identity_incomplete');
+    const resolved=await resolveWorkspaceForSso({email:authUser.email});
 
     if(requireSsoMfa()&&!tokenHasAal2(session.access_token)){
       await setPendingMfa({accessToken:session.access_token,next});
@@ -83,7 +84,8 @@ export async function GET(req){
     const appSession=await createWorkspaceSessionFromSso({
       email:authUser.email,
       authUserId:authUser.id,
-      providerId:method.provider||payload?.app_metadata?.provider||null
+      providerId:method.provider||payload?.app_metadata?.provider||null,
+      resolved
     });
     await setSession(appSession.token);
 
